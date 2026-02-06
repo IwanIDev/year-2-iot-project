@@ -1,0 +1,39 @@
+1. First find a YOLO ready detection dataset (not classification) focused on waste. Theres good ones here 
+https://universe.roboflow.com/. I have only had a little look but it would be ideal if we could find one or merge some 
+together that would be able to identify: Paper/Cardboard, Glass, Metal (cans etc), General Waste, Food/Bio and Plastics (all 
+common types so it can say whether they should be recycled or not).
+
+2. Once you have your data set download the zip in yolov8 format thats what ive been using.
+
+3. Go to google colab and swicth your runtime execution to a T4 Gpu and then drag the zip file into the files section on the left
+
+4. Once you have uploaded the zip. Make a code cell and types
+
+    !pip install ultralytics
+    !unzip YOURZIPNAME.zip -d FILENAME
+
+    run this first
+
+5. Then in another cell type:
+
+    from ultralytics import YOLO
+
+    model = YOLO("yolov8s") <- this is the small version there is a nano "yolov8n" if you want to try that too
+
+    model.train(
+
+        data= (this will be a string like "content/dataset/data.yaml" you need the yaml data file from your downloaded dataset)
+        batch=32, <- this is how much gpu ram i think its the max you can use
+        epochs=50/100, <- the more epochs the longer it takes but the model becomes more accurate id start with 50
+        workers=12, <- i think this is how many cpu threads to use I have just been using 12
+        cache=True <- this caches the images to memory to speed things up its optional and often doesnt work
+
+    ) 
+
+    run this code and it shoudl begin to train the model.
+
+6. Once it has finished training go to runs -> detect -> most recent train -> weights and download best.pt
+
+    you can also download last.pt if you want to keep training the same model on more epochs
+
+7. Use the best.pt file in the python script in the repo and see how it works
