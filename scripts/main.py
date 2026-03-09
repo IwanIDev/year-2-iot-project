@@ -73,6 +73,11 @@ def home():
 def dashboard():
     return render_template("dashboard.html", username=current_user.username)
 
+@app.route("/live")
+@login_required
+def live_view():
+    return render_template("live.html")
+
 @app.route("/logout")
 @login_required
 def logout():
