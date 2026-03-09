@@ -4,20 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
     <style>
         h1 { color: green; }
     </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li>Profile</li>
-            <li><b>Live Dashboard</b></li>
-            <li>Gallery</li>
-            <li>Leaderboard</li>
-            <li><a href="/logout">Logout</a></li>
-        </ul>
-    </nav>
     <h1>You are logged in as {{ username }}!</h1>
 </body>
 </html>
