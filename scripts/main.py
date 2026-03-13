@@ -1,10 +1,14 @@
 from flask import Flask, render_template, request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_bootstrap import Bootstrap
 from werkzeug.security import generate_password_hash, check_password_hash
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 # Initialise flask app
 app = Flask(__name__)
+bootstrap = Bootstrap(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = "secretkey"
@@ -58,7 +62,7 @@ def login():
 
         if user and check_password_hash(user.password, password):
             login_user(user)
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("live_view"))
         else:
             return render_template("login.html", error="Invalid username or password")
 
@@ -71,7 +75,27 @@ def home():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html", username=current_user.username)
+    x = [i for i in range(10)]
+    y = [i for i in range(10)]
+    plt.scatter(x,y)
+    plt.savefig('graphs/test.png')
+    imgs = ['graphs/test.png']
+    return render_template("dashboard.html", imgs=[])
+
+@app.route("/live")
+@login_required
+def live_view():
+    return render_template("live.html")
+
+@app.route("/leaderboard")
+@login_required
+def leaderboard():
+    return render_template("leaderboard.html")
+
+@app.route("/profile")
+@login_required
+def profile():
+    return render_template("profile.html")
 
 @app.route("/logout")
 @login_required
