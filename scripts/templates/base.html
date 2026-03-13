@@ -60,6 +60,10 @@
             a{
                 color: #107AB0;
             }
+
+            div {
+                text-align: center; 
+            }
         </style>
     </head>
 </html>
@@ -67,12 +71,13 @@
         <table class="navi">
             <tr>
                 <td>
-                    <p class="title"><img src="/static/logo.png" style="height: 50px;"> Bin Buddy <img src="/static/logo.png" style="height: 50px;"> 
+                    <p class="title">Bin Buddy 
                     <br>
                     <a class="page" href="{{ url_for('live_view') }}">Live View</a> |
-                    <a class="page" href="{{ url_for('dashboard')}}">Dashboard</a> |
-                    <a class="page" href="">Gallery</a> |
-                    <a class="page" href="">Leaderboard</a></p>
+                    <a class="page" href="{{ url_for('dashboard') }}">Dashboard</a> |
+                    <a class="page" href="{{ url_for('leaderboard') }}">Leaderboard</a> |
+                    <a class="page" href="{{ url_for('profile') }}">Profile</a>
+                    </p>
                 </td>
             </tr>
         </table>

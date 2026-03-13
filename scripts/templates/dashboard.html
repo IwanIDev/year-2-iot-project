@@ -1,20 +1,15 @@
 {% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
-    <style>
-        h1 { color: green; }
-    </style>
-</head>
-<body>
-    <h1>You are logged in as username !</h1>
-=======
-    <h1>You are logged in as {{ username }}!</h1>
->>>>>>> a203f1ef8390759c1fb792935618b7df7b096fb7
-</body>
-</html>
+{% block content %}
+    <!DOCTYPE html>
+    <html lang="en">
+        <body>
+            <h1>Main dashboard</h1>
+            {% for i in imgs %}
+                <div>
+                    <img src="{{i}}">
+                </div>
+            {%endfor%}
+        </body>
+    </html>
+{% endblock %}
