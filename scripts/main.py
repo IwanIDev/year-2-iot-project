@@ -1,10 +1,12 @@
 from flask import Flask, render_template, request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_bootstrap import Bootstrap
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Initialise flask app
 app = Flask(__name__)
+bootstrap = Bootstrap(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = "secretkey"
