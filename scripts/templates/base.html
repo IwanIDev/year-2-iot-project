@@ -4,22 +4,26 @@
 <html>
     <head>
         <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <link rel="bootstrap" href="{{ url_for('static', filename='bootstrap.min.css') }}">
     </head>
 </html>
-<div>
-        <table class="navi">
-            <tr>
-                <td>
-                    <p class="title">Bin Buddy 
-                    <br>
-                    <a class="page" href="{{ url_for('live_view') }}">Live View</a> |
-                    <a class="page" href="{{ url_for('dashboard') }}">Dashboard</a> |
-                    <a class="page" href="{{ url_for('leaderboard') }}">Leaderboard</a> |
-                    <a class="page" href="{{ url_for('profile') }}">Profile</a>
-                    </p>
-                </td>
-            </tr>
-        </table>
-        <br>
-</div>
+<body>
+    <nav class="navbar">
+        <h2>Bin Buddy</h2> 
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="{{ url_for('live_view') }}">Live View</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('leaderboard') }}">Leaderboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+            </li>
+        </ul>
+    </nav>
+</body>
 {% endblock %}
