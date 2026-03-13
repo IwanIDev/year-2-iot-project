@@ -3,11 +3,20 @@
 {% block content %}
     <!DOCTYPE html>
     <html lang="en">
+        <head>
+            <style>
+                img{
+                    height: 100;
+                    aspect-ratio: 1;
+                    object-fit: contain;
+                }
+            </style>
+        </head>
         <body>
             <h1>Main dashboard</h1>
             {% for i in imgs %}
                 <div>
-                    <img src="{{i}}">
+                    <img src="{{ i }}">
                 </div>
             {%endfor%}
         </body>
