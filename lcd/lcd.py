@@ -7,9 +7,10 @@ Written by Iwan Ingman, 2026-03-09
 """
 
 import time
-
 import smbus
 import RPi.GPIO as GPIO
+import logging
+
 rev = GPIO.RPI_REVISION
 if rev == 2 or rev == 3:
     bus = smbus.SMBus(1)
@@ -33,7 +34,10 @@ def textCommand(cmd: int) -> None:
     Send a command byte to the LCD text display.
     cmd: The command byte to send
     """
-    bus.write_byte_data(DISPLAY_TEXT_ADDR,0x80,cmd)
+    try:
+        bus.write_byte_data(DISPLAY_TEXT_ADDR,0x80,cmd)
+    except IOError as e:
+        logging.error(f"IO ERROR: {e}")
 
 def setText(text: str) -> None:
     """
@@ -57,7 +61,10 @@ def setText(text: str) -> None:
             if c == '\n':
                 continue
         count += 1
-        bus.write_byte_data(DISPLAY_TEXT_ADDR,0x40,ord(c))
+        try:
+            bus.write_byte_data(DISPLAY_TEXT_ADDR,0x40,ord(c))
+        except IOError as e:
+            logging.error(f"IO ERROR: {e}")
  
 
 def setRGB(r: int, g: int, b: int) -> None:
@@ -65,14 +72,22 @@ def setRGB(r: int, g: int, b: int) -> None:
     Set the backlight colour of the LCD display.
     r, g, b: 0-255 values for red, green, blue components
     """
-    bus.write_byte_data(DISPLAY_RGB_ADDR,0,0)
-    bus.write_byte_data(DISPLAY_RGB_ADDR,1,0)
-    bus.write_byte_data(DISPLAY_RGB_ADDR,0x08,0xaa)
-    bus.write_byte_data(DISPLAY_RGB_ADDR,4,r)
-    bus.write_byte_data(DISPLAY_RGB_ADDR,3,g)
-    bus.write_byte_data(DISPLAY_RGB_ADDR,2,b)
+    try:
+        bus.write_byte_data(DISPLAY_RGB_ADDR,0,0)
+        bus.write_byte_data(DISPLAY_RGB_ADDR,1,0)
+        bus.write_byte_data(DISPLAY_RGB_ADDR,0x08,0xaa)
+        bus.write_byte_data(DISPLAY_RGB_ADDR,4,r)
+        bus.write_byte_data(DISPLAY_RGB_ADDR,3,g)
+        bus.write_byte_data(DISPLAY_RGB_ADDR,2,b)
+    except IOError as e:
+        logging.error(f"IO ERROR: {e}")
 
 def main():
+    logging.basicConfig(
+        level=logging.WARNING,
+        format='%(asctime)s %(levelname)s - %(message)s'
+    )
+
     prediction = ""
     while True:
         try:
