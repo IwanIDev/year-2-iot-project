@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
-    <style>
-        h1 { color: green; }
-        .error { color: red; }
-    </style>
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <nav>
@@ -16,18 +13,18 @@
             <li><a href="/register">Create account</a></li>
         </ul>
     </nav>
-    <h1>Create an account</h1>
-
+    <h1>Login to your account</h1>
+    
     {% if error %}
         <p class="error">{{ error }}</p>
     {% endif %}
 
-    <form action="/register" method="post">
+    <form action="/login" method="post">
         <label for="username">Username:</label>
         <input type="text" name="username" required />
         <label for="password">Password:</label>
         <input type="password" name="password" required />
-        <button type="submit">Sign Up</button>
+        <button type="submit">Login</button>
     </form>
 </body>
 </html>

@@ -5,6 +5,7 @@ from flask_bootstrap import Bootstrap
 from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
+import os
 
 # Initialise flask app
 app = Flask(__name__)
@@ -75,12 +76,13 @@ def home():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    x = [i for i in range(10)]
-    y = [i for i in range(10)]
-    plt.scatter(x,y)
-    plt.savefig('graphs/test.png')
-    imgs = ['graphs/test.png']
-    return render_template("dashboard.html", imgs=[])
+    """x = [i for i in range(10)]
+    plt.plot(x,x)
+    path = "/scripts/graphs/test.png"
+    plt.savefig(path)
+    imgs = ["../"+path]*3"""
+    imgs = []
+    return render_template("dashboard.html", imgs=imgs)
 
 @app.route("/live")
 @login_required
@@ -92,10 +94,10 @@ def live_view():
 def leaderboard():
     return render_template("leaderboard.html")
 
-@app.route("/profile")
+@app.route("/settings")
 @login_required
-def profile():
-    return render_template("profile.html")
+def settings():
+    return render_template("settings.html", user=current_user, password=current_user.password)
 
 @app.route("/logout")
 @login_required
@@ -104,4 +106,4 @@ def logout():
     return redirect(url_for("home"))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(port='7001')
