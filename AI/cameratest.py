@@ -32,7 +32,7 @@ output_details = interpreter.get_output_details()
 input_index = input_details[0]["index"]
 output_index = output_details[0]["index"]
 
-input_dtype = input_details[0]["index"]
+input_dtype = input_details[0]["dtype"]
 
 #Takes 10 photos 
 picam2 = Picamera2()
@@ -59,13 +59,13 @@ def pre_process(frame):
 	frame = cv2.resize(frame, IMG_SIZE, interpolation=cv2.INTER_AREA)
 	
 	if input_dtype == np.float32:
-		img = img.astype(np.float32)
+		frame = frame.astype(np.float32)
 	elif input_dtype == np.uint8:
-		img = img.astype(np.uint8)
+		frame = frame.astype(np.uint8)
 	else:
-		img = img.astype(input_dtype)
+		frame = frame.astype(input_dtype)
 		
-	img = np.expand_dims(img, axis=0)
+	img = np.expand_dims(frame, axis=0)
 	
 	return img
 	
@@ -74,21 +74,23 @@ def pre_process(frame):
 
 def run_inference(img_tensor):
 
-    input_tensor = pre_process(img_tensor)
-    
-    interpreter.set_tensor(input_index, input_tensor)
-    
-    interpreter.get_tensor(output_index)[0]
-    
-    probs = interpreter.get_tensor(output_index)[0]
-    
-    probs = output.astype(np.float32)
-    
-    pred_idx = int(np.argmax(probs))
-    
-    confidence = float(probs[pred_idx])
-    
-    return pred_idx, confidence
+	input_tensor = pre_process(img_tensor)
+
+	interpreter.set_tensor(input_index, input_tensor)
+
+	interpreter.invoke()
+
+	interpreter.get_tensor(output_index)[0]
+
+	probs = interpreter.get_tensor(output_index)[0]
+
+	probs = probs.astype(np.float32)
+
+	pred_idx = int(np.argmax(probs))
+
+	confidence = float(probs[pred_idx])
+
+	return pred_idx, confidence
 	
 	
 
@@ -103,15 +105,19 @@ def majority_vote(preds):
 print("System ready. Press the button")
 
 while True:
-	time.sleep(0.05)
+	time.sleep(1)
 	setRGB(0, 50, 255)
+	time.sleep(1)
 	setText("Ready...")
+	
+
 	
 	input("Press Enter to capture")
 	print("Button Pressed")
-	time.sleep(0.05)
+	time.sleep(1)
 	setRGB(255,165,0)
 	setText("Capturing...")
+	time.sleep(1)
 		
 	images = capture_image()
 	
@@ -121,12 +127,9 @@ while True:
 	preds = []
 	for img in images:
 		print("Running Inference")
-		img_tensor = pre_process(img)
-		if img_tensor is None:
-			print("NONE")
-			continue
 		
-		class_id, score = run_inference(img_tensor)
+		class_id, score = run_inference(img)
+
 		if class_id is not None:
 			print(f"class = {class_id} ({CLASSES[class_id]}) score={score:.2f}")
 			preds.append(class_id)
@@ -134,7 +137,7 @@ while True:
 			print("NONE FOUND")
 		
 	if not preds:
-		time.sleep(0.05)
+		time.sleep(1)
 		setText("No Predictions")
 		print("No Predictions")	
 		continue
@@ -145,8 +148,10 @@ while True:
 		
 	print("Final: ", class_name)
 	
-	time.sleep(0.05)
+	time.sleep(1)
 	setRGB(0,255,0)
+	time.sleep(1)
+	
 	setText(f"Detected:\n{class_name}")
 	
 	del images
