@@ -76,13 +76,15 @@ def home():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    """x = [i for i in range(10)]
-    plt.plot(x,x)
-    path = "/scripts/graphs/test.png"
-    plt.savefig(path)
-    imgs = ["../"+path]*3"""
-    imgs = []
-    return render_template("dashboard.html", imgs=imgs)
+    data = {"xs":[
+                ["Plastic","Paper","Glass","General Waste","Food"],
+                ["17/3","18/3","19/3","20/3","21/3","Yesterday","Today"]
+            ],
+            "ys":[
+                [20,30,7,45,35],
+                [36,87,23,12,85,23,5]
+            ]}
+    return render_template("dashboard.html",data=data)
 
 @app.route("/live")
 @login_required
