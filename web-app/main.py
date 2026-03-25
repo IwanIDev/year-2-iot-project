@@ -5,7 +5,7 @@ from flask_bootstrap import Bootstrap
 from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
-import os
+import random
 
 # Initialise flask app
 app = Flask(__name__)
@@ -76,14 +76,13 @@ def home():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+    return render_template("dashboard.html",fact=get_fact())
 
 @app.route("/dashboard/data")
 @login_required
 def dashboard_data():
     time = request.args.get("time")
-    import random
-    print(f"getting data for last: {time}")
+
     data = {
         "xs":[
             ["Plastic","Paper","Glass","General Waste","Food"],
@@ -101,12 +100,11 @@ def dashboard_data():
 @app.route("/live")
 @login_required
 def live_view():
-    return render_template("live.html")
+    return render_template("live.html",fact=get_fact())
 
 @app.route("/live/data")
 @login_required
 def live_data():
-    import random
     tod = random.randint(9,20)
     data = {
         "recent":["Plastic","Paper","Glass","General Waste","Food"][random.randint(0,4)],
@@ -135,6 +133,20 @@ def settings():
 def logout():
     logout_user()
     return redirect(url_for("home"))
+
+def get_fact():
+    from pathlib import Path
+    PROJECT_DIR = Path(__file__).parent
+    path = PROJECT_DIR / 'static/facts.txt'
+    try:
+        file = path.read_text()
+        lines = file.split("\n")
+        facts = []
+        for line in lines:
+            facts.append(line)
+        return facts[random.randint(0,len(facts)-1)]
+    except Exception as e:
+        return e
 
 if __name__ == "__main__":
     app.run(port='7001')

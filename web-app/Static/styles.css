@@ -105,3 +105,14 @@ div {
 }
 
 .error { color: red; }
+
+.split{
+    border-bottom: 1px solid black;
+}
+
+.fact{
+    background-color: black;
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+}

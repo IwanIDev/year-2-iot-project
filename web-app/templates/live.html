@@ -2,15 +2,13 @@
 
 {% block content %}
     <head>
-        <style>
-            .split{
-                border-bottom: 1px solid black;
-            }
-        </style>
     </head>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="{{ url_for('static', filename='js/live.js') }}"></script>
     <body>
+        <div class="fact">
+            <p>{{ fact }}</p>
+        </div>
+        <div class="split"></div>
         <div>
             <h1 id="recent">...</h1>
             <p>most recent item</p>
@@ -22,5 +20,7 @@
         <br>
         <div class="split"></div>
         <div id="hourlyAverage"></div>
+
+        <script src="{{ url_for('static', filename='js/live.js') }}"></script>
     </body>
 {% endblock %}

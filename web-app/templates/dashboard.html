@@ -10,14 +10,15 @@
                     aspect-ratio: 1;
                     object-fit: contain;
                 }
-
-                .split{
-                    border-bottom: 1px solid black;
-                }
             </style>
         </head>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <body>
+            <div class="fact">
+                <p>{{ fact }}</p>
+            </div>
+            <div class="split"></div>
+            <br>
             <select id="timeFrame">
                 <option value="7days">Last 7 days</option>
                 <option value="14days">Last 14 days</option>
@@ -26,12 +27,14 @@
                 <option value="year">Last year</option>
                 <option value="all">All time</option>
             </select>
+            <br><br>
+            <div class="split"></div>
             <div id="typeRatio"></div>
             <div class="split"></div>
             <div id="dailyTrend"></div>
             <div class="split"></div>
             <div id="hourlyAverage"></div>
-            
+
             <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
         </body>
     </html>
