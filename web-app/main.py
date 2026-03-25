@@ -76,15 +76,22 @@ def home():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    data = {"xs":[
-                ["Plastic","Paper","Glass","General Waste","Food"],
-                ["17/3","18/3","19/3","20/3","21/3","Yesterday","Today"]
-            ],
-            "ys":[
-                [20,30,7,45,35],
-                [36,87,23,12,85,23,5]
-            ]}
-    return render_template("dashboard.html",data=data)
+    return render_template("dashboard.html")
+
+@app.route("/dashboard/data")
+@login_required
+def dashboard_data():
+    data = {
+        "xs":[
+            ["Plastic","Paper","Glass","General Waste","Food"],
+            ["17/3","18/3","19/3","20/3","21/3","Yesterday","Today"]
+        ],
+        "ys":[
+            [20,30,7,45,35],
+            [36,87,23,12,85,23,5]
+        ]
+    }
+    return data
 
 @app.route("/live")
 @login_required
