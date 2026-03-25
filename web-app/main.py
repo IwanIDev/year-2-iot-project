@@ -81,14 +81,19 @@ def dashboard():
 @app.route("/dashboard/data")
 @login_required
 def dashboard_data():
+    time = request.args.get("time")
+    import random
+    print(f"getting data for last: {time}")
     data = {
         "xs":[
             ["Plastic","Paper","Glass","General Waste","Food"],
-            ["17/3","18/3","19/3","20/3","21/3","Yesterday","Today"]
+            ["17/3","18/3","19/3","20/3","21/3","Yesterday","Today"],
+            [i for i in range(24)]
         ],
         "ys":[
-            [20,30,7,45,35],
-            [36,87,23,12,85,23,5]
+            [random.randint(0,50) for _ in range(5)],
+            [random.randint(0,100) for _ in range(7)],
+            [random.randint(0,20) for _ in range(24)]
         ]
     }
     return data
@@ -97,6 +102,23 @@ def dashboard_data():
 @login_required
 def live_view():
     return render_template("live.html")
+
+@app.route("/live/data")
+@login_required
+def live_data():
+    import random
+    tod = random.randint(9,20)
+    data = {
+        "recent":["Plastic","Paper","Glass","General Waste","Food"][random.randint(0,4)],
+        "today_count":random.randint(20,50),
+        "xs":[
+            [i for i in range(24)]
+        ],
+        "ys":[
+            [random.randint(0,10) for _ in range(tod)] + [0]*(24-tod)
+        ]
+    }
+    return data
 
 @app.route("/leaderboard")
 @login_required

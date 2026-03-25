@@ -1,14 +1,26 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <head>
+        <style>
+            .split{
+                border-bottom: 1px solid black;
+            }
+        </style>
+    </head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="{{ url_for('static', filename='js/live.js') }}"></script>
     <body>
         <div>
-            <h1>plastic</h1>
+            <h1 id="recent">...</h1>
             <p>most recent item</p>
         </div>
         <div>
-            <h1>18</h1>
+            <h1 id="today_count">...</h1>
             <p>items recycled today</p>
         </div>
+        <br>
+        <div class="split"></div>
+        <div id="hourlyAverage"></div>
     </body>
 {% endblock %}

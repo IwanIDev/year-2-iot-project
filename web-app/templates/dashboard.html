@@ -17,11 +17,22 @@
             </style>
         </head>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-        <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
         <body>
+            <select id="timeFrame">
+                <option value="7days">Last 7 days</option>
+                <option value="14days">Last 14 days</option>
+                <option value="month">Last month</option>
+                <option value="6months">Last 6 months</option>
+                <option value="year">Last year</option>
+                <option value="all">All time</option>
+            </select>
             <div id="typeRatio"></div>
             <div class="split"></div>
             <div id="dailyTrend"></div>
+            <div class="split"></div>
+            <div id="hourlyAverage"></div>
+            
+            <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
         </body>
     </html>
 {% endblock %}
