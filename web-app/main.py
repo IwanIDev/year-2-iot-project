@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import random
+import data
 
 # Initialise flask app
 app = Flask(__name__)
@@ -19,6 +20,22 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
+
+def get_facts():
+    from pathlib import Path
+    PROJECT_DIR = Path(__file__).parent
+    path = PROJECT_DIR / 'static/facts.txt'
+    try:
+        file = path.read_text()
+        lines = file.split("\n")
+        facts = []
+        for line in lines:
+            facts.append(line)
+        return facts
+    except Exception as e:
+        return [""]
+
+FACTS = get_facts()
 
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -82,20 +99,7 @@ def dashboard():
 @login_required
 def dashboard_data():
     time = request.args.get("time")
-
-    data = {
-        "xs":[
-            ["Plastic","Paper","Glass","General Waste","Food"],
-            ["17/3","18/3","19/3","20/3","21/3","Yesterday","Today"],
-            [i for i in range(24)]
-        ],
-        "ys":[
-            [random.randint(0,50) for _ in range(5)],
-            [random.randint(0,100) for _ in range(7)],
-            [random.randint(0,20) for _ in range(24)]
-        ]
-    }
-    return data
+    return data.dashboard_data(time)
 
 @app.route("/live")
 @login_required
@@ -105,18 +109,7 @@ def live_view():
 @app.route("/live/data")
 @login_required
 def live_data():
-    tod = random.randint(9,20)
-    data = {
-        "recent":["Plastic","Paper","Glass","General Waste","Food"][random.randint(0,4)],
-        "today_count":random.randint(20,50),
-        "xs":[
-            [i for i in range(24)]
-        ],
-        "ys":[
-            [random.randint(0,10) for _ in range(tod)] + [0]*(24-tod)
-        ]
-    }
-    return data
+    return data.live_data()
 
 @app.route("/leaderboard")
 @login_required
@@ -135,18 +128,7 @@ def logout():
     return redirect(url_for("home"))
 
 def get_fact():
-    from pathlib import Path
-    PROJECT_DIR = Path(__file__).parent
-    path = PROJECT_DIR / 'static/facts.txt'
-    try:
-        file = path.read_text()
-        lines = file.split("\n")
-        facts = []
-        for line in lines:
-            facts.append(line)
-        return facts[random.randint(0,len(facts)-1)]
-    except Exception as e:
-        return e
+    return random.choice(FACTS)
 
 if __name__ == "__main__":
     app.run(port='7001')

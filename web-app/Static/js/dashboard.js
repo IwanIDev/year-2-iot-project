@@ -43,7 +43,7 @@ async function init(){
             layout = {
                 title:"Hourly averages",
                 xaxis:{
-                    range:[-1,25],
+                    range:[-1,24],
                     title:"Time of day"
                 },
                 yaxis:{
