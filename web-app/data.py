@@ -11,13 +11,13 @@ def rand_last_week():
     # TEMPORARY FOR GENERATING DUMMY DATA
     # RETURNS RANDOM TIMESTAMP IN THE LAST WEEK
     rand_time_today = datetime.now().replace(hour=random.randint(0,23),minute=random.randint(0,59))
-    rand_time_today = rand_time_today - timedelta(days=random.randint(0,25))
+    rand_time_today = rand_time_today - timedelta(days=random.randint(0,365))
     return datetime.timestamp(rand_time_today)
 
 dummy_json = {
     "category":[
         {"ts": rand_last_week(),
-         "value":random.choice(TYPES)} for _ in range(200)
+         "value":random.choice(TYPES)} for _ in range(1000)
     ]
 }
 
@@ -201,11 +201,16 @@ def live_data():
     """
     items = results_today(DATA)
     n = len(items)
+
+    if n>0:
+        recent = items[n-1]["value"]
+    else:
+        recent = None
     
     x0,y0 = count_times(items)
 
     data = {
-        "recent":items[n-1]["value"],
+        "recent":recent,
         "today_count":n,
         "xs":[
             x0
