@@ -22,6 +22,15 @@ dummy_json = {
 }
 
 def sort(data):
+    """
+        Sorts the data based on timestamp (earliest first)
+
+        Parameters
+            data: list of dicts containing timestamp 'ts' and category 'value'
+        
+        Returns
+            output: list of dicts containing timestamp 'ts' and category 'value', ordered by ascending timestamp
+    """
     output = []
     for item in data:
         if len(output) == 0:
@@ -38,17 +47,17 @@ def sort(data):
 
 DATA = sort(dummy_json["category"])
 
-def results_in_time(data,time):
+def results_in_time(data,time="all"):
     """
     Gets all categories in a given timeframe
 
     Parameters:
         data:   list of dicts containing timestamp 'ts' and category 'value'
         time:   string containing one of:
-            7days, 14days, month, 6months, year, all
+            7days, 14days, month, 6months, year, all | None = "all"
     
     Returns:
-        list:   categories within the given timeframe
+        list:   list of dicts " (only items scanned within the timeframe)
     """
     if time == "all":
         return data
@@ -70,6 +79,15 @@ def results_in_time(data,time):
     return output
 
 def results_today(data):
+    """
+        Gets only items scanned today
+
+        Parameters
+            data:   list of dicts containing "ts" timestamp and "value" category
+        
+        Returns
+            output: list of dicts " (only items scanned today)
+    """
     output = []
     today = datetime.now().date()
     for item in data:
@@ -78,12 +96,31 @@ def results_today(data):
     return output
 
 def count_types(data):
+    """
+        Count the total number of items in each category
+
+        Parameters
+            data: list of dicts containing "ts" timestamp and "value" category
+        
+        Returns
+            count:  list containing each type, corresponding to TYPE
+    """
     count = [0]*len(TYPES)
     for item in data:
         count[TYPES.index(item["value"])] += 1
     return count
 
 def count_days(data):
+    """
+        Count the total number of items scanned on each day
+
+        Parameters
+            data: list of dicts containing "ts" timestamp and "value" category
+        
+        Returns
+            x:  list containing string of every day from first data item to today
+            y:  list containing total count in each day
+    """
     if len(data) == 0:
         return [],[]
     
@@ -102,6 +139,16 @@ def count_days(data):
     return x,y
 
 def count_times(data):
+    """
+        Count the total number of items scanned at each hour
+
+        Parameters
+            data: list of dicts containing "ts" timestamp and "value" category
+        
+        Returns
+            x:  list containing 0 to 23 (hours)
+            y:  list containing total count in each hour slot
+    """
     if len(data) == 0:
         return [],[]
     
@@ -113,6 +160,14 @@ def count_times(data):
     return x,y
 
 def dashboard_data(time):
+    """
+    Get the data to display on the dashboard screen
+
+    Returns
+        data:   dict
+            "xs":   list of lists for Pyplot graphs
+            "ys":   list of lists for Pyplot graphs  
+    """
     items = results_in_time(DATA,time)
 
     x1,y1 = count_days(items)
@@ -134,6 +189,16 @@ def dashboard_data(time):
     return data
 
 def live_data():
+    """
+    Get the data to display on the live screen
+
+    Returns
+        data:   dict
+            "recent": most recent item type
+            "today_count": number of items today
+            "xs":   list of lists for Pyplot graphs
+            "ys":   list of lists for Pyplot graphs  
+    """
     items = results_today(DATA)
     n = len(items)
     
