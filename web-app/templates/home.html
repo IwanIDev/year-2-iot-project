@@ -3,15 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Bin Buddy</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        h1{
+            max-width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .form_group{
+            display: table;
+            width: 100%;
+        }
+
+        .form_element{
+            display: table-row;
+        }
+
+        label,input{
+            width: 50%;
+            display: table-cell;
+            margin: 3px;
+        }
+
+        label{
+            text-align: right;
+        }
+
+        input{
+            margin-right: 100%;
+            border-radius: 10px;
+        }
+
+        button{
+            display: flex;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 6px;
+        }
+    </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="/login">Login</a></li>
-            <li><a href="/register">Register</a></li>
-        </ul>
-    </nav>
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+    <div>
+        <h1>Log in</h1>
+        <form action="login" method="post">
+            <div class="form_group">
+                <p class="form_element">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" required />
+                </p>
+                <p class="form_element">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" required />
+                </p>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    <div>
+        <h1>Sign Up</h1>
+        <form action="register" method="post">
+            <div class="form_group">
+                <p class="form_element">
+                    <label for="username">Username</label>
+                    <input type="text" name="username" required />
+                </p>
+                <p class="form_element">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" required />
+                </p>
+                <p class="form_element">
+                    <label for="device_id">Device ID</label>
+                    <input type="text" name="device_id" required value="{{ id }}" />
+                </p>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
 </body>
 </html>
