@@ -73,7 +73,7 @@ def register():
         db.session.commit()
 
         login_user(new_user)
-        return redirect(url_for("live_view"))
+        return redirect(url_for("live"))
     
     return render_template("home.html")
 
@@ -88,7 +88,7 @@ def login():
         if user:
             if check_password_hash(user.password, password):
                 login_user(user)
-                return redirect(url_for("live_view"))
+                return redirect(url_for("live"))
             return render_template("home.html", error="Incorrect password.")
         return render_template("home.html", error="Username does not exist.")
     
@@ -114,7 +114,7 @@ def dashboard_data():
 
 @app.route("/live")
 @login_required
-def live_view():
+def live():
     return render_template("live.html",fact=get_fact())
 
 @app.route("/live/data")
