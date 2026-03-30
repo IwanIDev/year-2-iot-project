@@ -1,4 +1,6 @@
 import cv2
+import json
+import paho.mqtt.client as mqtt
 import numpy as np
 from picamera2 import Picamera2
 import subprocess
@@ -8,6 +10,14 @@ import tensorflow as tf
 from collections import Counter
 
 from grove_rgb_lcd import setText, setRGB
+
+broker = "localhost"
+
+port = 1883
+
+client = mqtt.Client()
+
+client.connect(broker, port, 60)
 
 
 #GPIO Setup
@@ -97,7 +107,18 @@ def run_inference(img_tensor):
 	
 def majority_vote(preds):
 	return Counter(preds).most_common(1)[0][0]
+
+def send_thingsboard(waste_type):
+
+	payload = {
+		"waste_type": waste_type
+	}
+
+	client.publish("waste/detection", json.dumps(payload))
 	
+	print("Sent:", payload)
+
+
 #MAIN LOOP
 
 
@@ -147,6 +168,8 @@ while True:
 	class_name = CLASSES[final_class]
 		
 	print("Final: ", class_name)
+
+	send_thingsboard(class_name)
 	
 	time.sleep(1)
 	setRGB(0,255,0)
@@ -156,6 +179,8 @@ while True:
 	
 	del images
 	del preds
+
+	
 		
 	
 	time.sleep(5)
