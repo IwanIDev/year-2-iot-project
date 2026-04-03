@@ -31,9 +31,9 @@ collection_date = "01/04/2026"
 
 def button_monitor():
     
-    global start_screen_running
+    global start_screen_running, detect_mode_running
 
-    while start_screen_running:
+    while True:
 
         with i2c_lock:
             state = grovepi.digitalRead(button_led)
@@ -61,8 +61,9 @@ def scroll_message_two_lines(message1, message2, delay=0.3):
         if not start_screen_running:
             break
         
+        text = message1[i:i+16] + "\n" + message2[i:i+16]
+
         with i2c_lock:
-            text = message1[i:i+16] + "\n" + message2[i:i+16]
             setText(text)
         
         time.sleep(delay)
@@ -83,15 +84,13 @@ def intitial_display(message1, message2, delay):
                     grovepi.digitalWrite(button_led, 0)  # Ensure LED off
                     setRGB(0, 255, 0)  # Green
 
-                scroll_message_two_lines(f"Your next collection date is: {message1}"
-                                            , f"Bins taken: {message2}", delay)
+                scroll_message_two_lines(message1, message2, delay)
                 
                 time.sleep(0.5)
 
             else:
                 with i2c_lock:
                     grovepi.digitalWrite(button_led, 0)
-                    led_on = False
                     setText("")
                     setRGB(0,0,0)
                 
