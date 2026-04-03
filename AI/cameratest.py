@@ -1,9 +1,10 @@
 import cv2
 import json
-import paho.mqtt.client as mqtt
+#
+# import paho.mqtt.client as mqtt
 import numpy as np
 from picamera2 import Picamera2
-import subprocess
+#mport subprocess
 import time
 import os
 import tensorflow as tf
@@ -11,13 +12,13 @@ from collections import Counter
 
 from grove_rgb_lcd import setText, setRGB
 
-broker = "localhost"
+#broker = "localhost"
 
-port = 1883
+#port = 1883
 
-client = mqtt.Client()
+#client = mqtt.Client()
 
-client.connect(broker, port, 60)
+#client.connect(broker, port, 60)
 
 
 #GPIO Setup

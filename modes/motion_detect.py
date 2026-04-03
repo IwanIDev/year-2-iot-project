@@ -1,6 +1,11 @@
+import sys
+
+sys.path.append("/home/pi/Dexter/GrovePi/Software/Python")
+
 import grovepi
 from grove_rgb_lcd import *  # For Grove RGB LCD
 import time
+
 
 # ----- Setup -----
 pir = 2          # Motion sensor on D2
@@ -28,22 +33,23 @@ led_on = False
 while True:
     try:
         motion = grovepi.digitalRead(pir)
+        print(motion)
         button_pressed = grovepi.digitalRead(button_led)
         
         if motion and not button_pressed:
-            # Motion detected mode (green)
+            # Motion detected mode (green)888
             grovepi.digitalWrite(button_led, 0)  # Ensure LED off
             led_on = False
             setRGB(0, 255, 0)  # Green
-            message = f"Collection Date: {collection_date}\nBins: {', '.join(collection_type)}"
-            
-            # Scroll if message too long
-            if len(message) > 16:
-                scroll_message(message.replace("\n", " "), (0,255,0))
-            else:
-                setText(message)
-            time.sleep(0.5)
 
+            for i in range(max(len(collection_date),len(collection_type)) - 15):
+                grovepi.lcd_string(f"Your next collection date is: {collection_date[i:i+16]}", 1)
+                grovepi.lcd_string(f"Bins taken: {collection_type[i:i+16]}", 2)
+                
+                time.sleep(0.2)
+            
+            
+            
         elif button_pressed:
             # Button pressed mode (blue)
             grovepi.digitalWrite(button_led, 1)  # Turn LED on
