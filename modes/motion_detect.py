@@ -11,7 +11,7 @@ button_pressed_flag = False
 start_screen_running = True
 detect_mode_running = False
 
-i2c_lock = threading.Lock()
+i2c_lock = threading.RLock()
 
 # ----- Setup -----
 pir = 2          # Motion sensor on D2
@@ -40,8 +40,7 @@ def button_monitor():
 
         if state == 1:
             start_screen_running = False
-            
-        
+            detect_mode_running = True
         
         time.sleep(0.05)
 
@@ -72,57 +71,61 @@ def intitial_display(message1, message2, delay):
     
     global start_screen_running, detect_mode_running
     
-    while start_screen_running:
-        
-        with i2c_lock:
-            motion = grovepi.digitalRead(pir)
-            
-        if motion:
-            # Motion detected mode (green)888
-
+    while True:
+        if start_screen_running:
             with i2c_lock:
-                grovepi.digitalWrite(button_led, 0)  # Ensure LED off
-                setRGB(0, 255, 0)  # Green
+                motion = grovepi.digitalRead(pir)
+                
+            if motion:
+                # Motion detected mode (green)888
 
-            scroll_message_two_lines(f"Your next collection date is: {message1}"
-                                        , f"Bins taken: {message2}", delay)
-            
-            time.sleep(0.5)
+                with i2c_lock:
+                    grovepi.digitalWrite(button_led, 0)  # Ensure LED off
+                    setRGB(0, 255, 0)  # Green
 
+                scroll_message_two_lines(f"Your next collection date is: {message1}"
+                                            , f"Bins taken: {message2}", delay)
+                
+                time.sleep(0.5)
+
+            else:
+                with i2c_lock:
+                    grovepi.digitalWrite(button_led, 0)
+                    led_on = False
+                    setText("")
+                    setRGB(0,0,0)
+                
+                time.sleep(0.2)
         else:
-            with i2c_lock:
-                grovepi.digitalWrite(button_led, 0)
-                led_on = False
-                setText("")
-                setRGB(0,0,0)
-            
-            time.sleep(0.2)
-
-    detect_mode_running = True
+            time.sleep(0.1)
+   
 
 def detect_mode():
     
     global start_screen_running, detect_mode_running
 
-    while detect_mode_running:
+    while True:
         
-        with i2c_lock:
-            motion = grovepi.digitalRead(pir)
-            grovepi.digitalWrite(button_led, 1)  # Turn LED on
+        if detect_mode_running:
+            with i2c_lock:
+                motion = grovepi.digitalRead(pir)
+                grovepi.digitalWrite(button_led, 1)  # Turn LED on
+                
+                setRGB(0, 0, 255)  # Blue
+                message = "     DETECT     "
+                setText(message)
             
-            setRGB(0, 0, 255)  # Blue
-            message = "     DETECT     "
-            setText(message)
-        
-        time.sleep(3)
-        
-        with i2c_lock:
-            motion = grovepi.digitalRead(pir)
+            time.sleep(3)
             
-        if motion == 0:
-            detect_mode_running = False
-            start_screen_running = True
-            break
+            with i2c_lock:
+                motion = grovepi.digitalRead(pir)
+
+            if motion == 0:
+                detect_mode_running = False
+                start_screen_running = True
+        
+        else:
+            time.sleep(0.1)    
 
 
 
