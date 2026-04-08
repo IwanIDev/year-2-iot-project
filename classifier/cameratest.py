@@ -1,10 +1,15 @@
+import sys
+
+sys.path.append("/home/pi/Dexter/GrovePi/Software/Python")
+
+import grovepi
 import cv2
-import json
+
 #
 # import paho.mqtt.client as mqtt
 import numpy as np
 from picamera2 import Picamera2
-#mport subprocess
+
 import time
 import os
 import tensorflow as tf
@@ -22,12 +27,13 @@ from grove_rgb_lcd import setText, setRGB
 
 
 #GPIO Setup
-
+pir = 2       
+light_sens = 0
 
 
 #Load Model
 
-MODEL_PATH = "/home/pi/AI/iot-group-project/AI/model.tflite"
+MODEL_PATH = "/home/pi/AI/iot-group-project/classifier/model.tflite"
 IMG_SIZE = (224, 224)
 
 CLASSES = ["CARDBOARD-PAPER", "FOOD", "GENERAL WASTE", "GLASS", "HARD PLASTIC", "METAL", "SOFT PLASTIC"]
@@ -109,81 +115,94 @@ def run_inference(img_tensor):
 def majority_vote(preds):
 	return Counter(preds).most_common(1)[0][0]
 
-def send_thingsboard(waste_type):
 
-	payload = {
-		"waste_type": waste_type
-	}
+def resistance_to_lux(light_val):
 
-	client.publish("waste/detection", json.dumps(payload))
-	
-	print("Sent:", payload)
+    # Approximates lux by first getting the resistance
+
+    resistance = ((1023 - light_val) * 10000) / light_val
+
+    lux = 500 / (resistance / 1000)
+
+    return lux
 
 
 #MAIN LOOP
 
+def detect_waste():
 
+	while True:
 
-print("System ready. Press the button")
+		light_val = grovepi.analogRead(light_sens)
 
-while True:
-	time.sleep(1)
-	setRGB(0, 50, 255)
-	time.sleep(1)
-	setText("Ready...")
-	
+		lux = resistance_to_lux(light_val)
 
-	
-	input("Press Enter to capture")
-	print("Button Pressed")
-	time.sleep(1)
-	setRGB(255,165,0)
-	setText("Capturing...")
-	time.sleep(1)
+		while lux <= 50:
+
+			setRGB(255,0,0)
+			time.sleep(0.5)
+			setText("Low light detected! Please turn on light.")
+
+			light_val = grovepi.analogRead(light_sens)
+
+			lux = resistance_to_lux(light_val)
+
+		print("System ready. Press the button")
 		
-	images = capture_image()
-	
-	print("Images captured")
-	
-	
-	preds = []
-	for img in images:
-		print("Running Inference")
-		
-		class_id, score = run_inference(img)
-
-		if class_id is not None:
-			print(f"class = {class_id} ({CLASSES[class_id]}) score={score:.2f}")
-			preds.append(class_id)
-		else:
-			print("NONE FOUND")
-		
-	if not preds:
 		time.sleep(1)
-		setText("No Predictions")
-		print("No Predictions")	
-		continue
-				
-	final_class = majority_vote(preds)
-		
-	class_name = CLASSES[final_class]
-		
-	print("Final: ", class_name)
+		setRGB(0,0,255)
+		setText("Ready...")
 
-	send_thingsboard(class_name)
-	
-	time.sleep(1)
-	setRGB(0,255,0)
-	time.sleep(1)
-	
-	setText(f"Detected:\n{class_name}")
-	
-	del images
-	del preds
-
-	
+		input("Press Enter to capture")
+		print("Button Pressed")
+		time.sleep(1)
+		setRGB(255,165,0)
+		setText("Capturing...")
+		time.sleep(1)
+			
+		images = capture_image()
 		
-	
-	time.sleep(5)
+		print("Images captured")
+		
+		
+		preds = []
+		for img in images:
+			print("Running Inference")
+			
+			class_id, score = run_inference(img)
+
+			if class_id is not None:
+				print(f"class = {class_id} ({CLASSES[class_id]}) score={score:.2f}")
+				preds.append(class_id)
+			else:
+				print("NONE FOUND")
+			
+		if not preds:
+			time.sleep(1)
+			setText("No Predictions")
+			print("No Predictions")	
+			continue
+					
+		final_class = majority_vote(preds)
+			
+		class_name = CLASSES[final_class]
+			
+		print("Final: ", class_name)
+		
+		time.sleep(1)
+		setRGB(0,255,0)
+		time.sleep(1)
+		
+		setText(f"Detected:\n{class_name}")
+		
+		del images
+		del preds
+		
+		time.sleep(5)
+		
+		motion = grovepi.digitalRead(pir)
+
+		if not motion:
+			break
 			
 

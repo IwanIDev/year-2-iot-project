@@ -1,8 +1,11 @@
 import sys
+import os
 
 sys.path.append("/home/pi/Dexter/GrovePi/Software/Python")
+sys.path.append(os.path.abspath("."))
 
 import threading
+from classifier.cameratest import detect_waste
 import grovepi
 from grove_rgb_lcd import *  # For Grove RGB LCD
 import time
@@ -17,6 +20,7 @@ i2c_lock = threading.RLock()
 pir = 2          # Motion sensor on D2
 button_led = 3   # LED Button on D3
 
+
 grovepi.pinMode(pir, "INPUT")
 grovepi.pinMode(button_led, "INPUT")
 
@@ -26,6 +30,8 @@ grovepi.digitalWrite(button_led, 0)
 # Fake collection info
 collection_type = "General Waste, Red Bag, Blue Bag"
 collection_date = "01/04/2026"
+
+
 
 #Button Monitor
 
@@ -124,7 +130,10 @@ def detect_mode():
                 start_screen_running = True
         
         else:
-            time.sleep(0.1)    
+            with i2c_lock:
+                detect_waste()
+            detect_mode_running = False
+            start_screen_running = True
 
 
 
