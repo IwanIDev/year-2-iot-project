@@ -31,6 +31,8 @@ pir = 2
 light_sens = 0
 
 
+
+
 #Load Model
 
 MODEL_PATH = "/home/pi/AI/iot-group-project/classifier/model.tflite"
@@ -51,12 +53,9 @@ output_index = output_details[0]["index"]
 
 input_dtype = input_details[0]["dtype"]
 
-#Takes 10 photos 
-picam2 = Picamera2()
-picam2.configure(picam2.create_still_configuration())
-picam2.start()
 
-def capture_image():
+
+def capture_image(picam2):
 
     images = []
     for i in range(10):
@@ -116,28 +115,17 @@ def majority_vote(preds):
 	return Counter(preds).most_common(1)[0][0]
 
 
-def resistance_to_lux(light_val):
-
-    # Approximates lux by first getting the resistance
-
-    resistance = ((1023 - light_val) * 10000) / light_val
-
-    lux = 500 / (resistance / 1000)
-
-    return lux
-
 
 #MAIN LOOP
 
-def detect_waste():
+def detect_waste(picam2):
 
 	while True:
 
 		light_val = grovepi.analogRead(light_sens)
-
-		lux = resistance_to_lux(light_val)
-
-		while lux <= 50:
+		print(light_val)
+		
+		while light_val <= 40:
 
 			setRGB(255,0,0)
 			time.sleep(0.5)
@@ -145,7 +133,6 @@ def detect_waste():
 
 			light_val = grovepi.analogRead(light_sens)
 
-			lux = resistance_to_lux(light_val)
 
 		print("System ready. Press the button")
 		
@@ -160,7 +147,7 @@ def detect_waste():
 		setText("Capturing...")
 		time.sleep(1)
 			
-		images = capture_image()
+		images = capture_image(picam2)
 		
 		print("Images captured")
 		
@@ -203,6 +190,7 @@ def detect_waste():
 		motion = grovepi.digitalRead(pir)
 
 		if not motion:
+			picam2.stop()
 			break
 			
 

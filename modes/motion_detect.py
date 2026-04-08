@@ -9,6 +9,8 @@ from classifier.cameratest import detect_waste
 import grovepi
 from grove_rgb_lcd import *  # For Grove RGB LCD
 import time
+from picamera2 import Picamera2
+
 
 button_pressed_flag = False
 start_screen_running = True
@@ -19,6 +21,12 @@ i2c_lock = threading.RLock()
 # ----- Setup -----
 pir = 2          # Motion sensor on D2
 button_led = 3   # LED Button on D3
+
+#Initialsies the camera
+
+picam2 = Picamera2()
+picam2.configure(picam2.create_still_configuration())
+picam2.start()
 
 
 grovepi.pinMode(pir, "INPUT")
@@ -43,6 +51,7 @@ def button_monitor():
 
         with i2c_lock:
             state = grovepi.digitalRead(button_led)
+            
 
         if state == 1:
             start_screen_running = False
@@ -128,12 +137,13 @@ def detect_mode():
             if motion == 0:
                 detect_mode_running = False
                 start_screen_running = True
-        
-        else:
-            with i2c_lock:
-                detect_waste()
+
+            detect_waste(picam2)
             detect_mode_running = False
             start_screen_running = True
+        
+        else:
+            time.sleep(0.1)
 
 
 
