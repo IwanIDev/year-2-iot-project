@@ -42,6 +42,7 @@ class Users(UserMixin, db.Model):
     username = db.Column(db.String(250), unique=True, nullable=False)
     password = db.Column(db.String(250), nullable=False)
     device_id = db.Column(db.String(250), unique=True, nullable=False)
+    local_council = db.Column(db.String(250), nullable=False)
 
 # create database
 with app.app_context():
@@ -68,7 +69,9 @@ def register():
             return render_template("home.html", error="Device ID already taken.")
         # check the id matches a thingsboard device
 
-        new_user = Users(username=username, password=hashed_password, device_id=id)
+        local_council = request.form.get("local_council")
+
+        new_user = Users(username=username, password=hashed_password, device_id=id, local_council=local_council)
         db.session.add(new_user)
         db.session.commit()
 
@@ -131,6 +134,28 @@ def leaderboard():
 @login_required
 def settings():
     return render_template("settings.html", user=current_user, password=current_user.password)
+
+@app.route("/change_password", methods=["GET","POST"])
+@login_required
+def change_password():
+    if request.method == "POST":
+        current_password = request.form.get("current_password")
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+        
+        if not check_password_hash(current_user.password, current_password):
+            return render_template("change_password.html", error="Current password is incorrect.")
+        
+        if new_password != confirm_password:
+            return render_template("change_password.html", error="New passwords do not match.")
+        
+        hashed_new_password = generate_password_hash(new_password, method="pbkdf2:sha256")
+        current_user.password = hashed_new_password
+        db.session.commit()
+        
+        return redirect(url_for("settings"))
+    
+    return render_template("change_password.html")
 
 @app.route("/logout")
 @login_required
