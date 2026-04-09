@@ -5,32 +5,20 @@ sys.path.append("/home/pi/Dexter/GrovePi/Software/Python")
 import grovepi
 import cv2
 
-#
-# import paho.mqtt.client as mqtt
 import numpy as np
 from picamera2 import Picamera2
-
+import threading
 import time
-import os
 import tensorflow as tf
 from collections import Counter
 
 from grove_rgb_lcd import setText, setRGB
 
-#broker = "localhost"
-
-#port = 1883
-
-#client = mqtt.Client()
-
-#client.connect(broker, port, 60)
-
+i2c_lock = threading.RLock()
 
 #GPIO Setup
 pir = 2       
 light_sens = 0
-
-
 
 
 #Load Model
@@ -52,7 +40,6 @@ input_index = input_details[0]["index"]
 output_index = output_details[0]["index"]
 
 input_dtype = input_details[0]["dtype"]
-
 
 
 def capture_image(picam2):
@@ -127,25 +114,27 @@ def detect_waste(picam2):
 		
 		while light_val <= 40:
 
-			setRGB(255,0,0)
-			time.sleep(0.5)
-			setText("Low light detected! Please turn on light.")
+			with i2c_lock:
+				setRGB(255,0,0)
+				setText("Low light detected! Please turn on light.")
 
 			light_val = grovepi.analogRead(light_sens)
 
 
 		print("System ready. Press the button")
 		
-		time.sleep(1)
-		setRGB(0,0,255)
-		setText("Ready...")
+		with i2c_lock:
+			setRGB(0,0,255)
+			setText("Ready...")
 
 		input("Press Enter to capture")
 		print("Button Pressed")
 		time.sleep(1)
-		setRGB(255,165,0)
-		setText("Capturing...")
-		time.sleep(1)
+		
+		with i2c_lock:
+			setRGB(255,165,0)
+			setText("Capturing...")
+		
 			
 		images = capture_image(picam2)
 		
@@ -176,11 +165,9 @@ def detect_waste(picam2):
 			
 		print("Final: ", class_name)
 		
-		time.sleep(1)
-		setRGB(0,255,0)
-		time.sleep(1)
-		
-		setText(f"Detected:\n{class_name}")
+		with i2c_lock:
+			setRGB(0,255,0)
+			setText(f"Detected:\n{class_name}")
 		
 		del images
 		del preds
@@ -190,7 +177,6 @@ def detect_waste(picam2):
 		motion = grovepi.digitalRead(pir)
 
 		if not motion:
-			picam2.stop()
 			break
 			
 
