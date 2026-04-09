@@ -109,15 +109,13 @@ def detect_waste(picam2):
 
         with config.i2c_lock:
             setRGB(255,0,0)
-            message1 = "Warning low light!"
-            message2 = "Turn on light."
-            setText(f"{message1}\n{message2}")
+            setText("Warning!\nLight too low!")
         
         time.sleep(0.5)
 
         light_val = grovepi.analogRead(config.light_sens)
 
-
+    time.sleep(2)
     print("System ready. Running Inference")
 
 
@@ -191,7 +189,7 @@ def detect_mode(picam2):
                 print(grovepi.digitalRead(config.button_led))
                 time.sleep(0.05)
 
-            # Start inference loop with 10-second timeout
+            # Start inference loop with 15-second timeout
             last_button_press = time.time()
             
             while True:
@@ -203,11 +201,15 @@ def detect_mode(picam2):
                 else:
                     with config.i2c_lock:
                         setRGB(0,0,255)
-                        setText("Press button to\nstart detection")
-                    if time.time() - last_button_press > 20:
+                        setText("Ready!\nPress Button")
+                    if time.time() - last_button_press > 15:
                         break
                 time.sleep(0.1)
 
+            with config.i2c_lock:
+                setRGB(255,255,0)
+                setText("Exiting\nDetect Mode")
+                time.sleep(3)
             picam2.stop()
             config.detect_mode_running = False
             config.start_screen_running = True
