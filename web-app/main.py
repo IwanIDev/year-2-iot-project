@@ -7,13 +7,14 @@ import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import random
 import data
+import os
 
 # Initialise flask app
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = "secretkey"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "default_secret_key")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite")
 
 # Initialise database and login manager
 db = SQLAlchemy(app)
