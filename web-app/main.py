@@ -8,6 +8,7 @@ plt.switch_backend('agg')
 import random
 import data
 import os
+from api import api_view
 
 # Initialise flask app
 app = Flask(__name__)
@@ -27,6 +28,9 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "home"
+
+# Add API blueprint
+app.register_blueprint(api_view)
 
 def get_facts():
     from pathlib import Path
