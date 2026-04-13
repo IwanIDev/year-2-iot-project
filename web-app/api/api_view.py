@@ -5,12 +5,11 @@ import logging
 
 api_view = Blueprint('api_view', __name__, url_prefix='/api')
 
-@api_view.route('/setLocalAuthority', methods=['POST'])
-def set_local_authority():
+@api_view.route('/localAuthority/<device_id>', methods=['POST'])
+def set_local_authority(device_id):
     """
     Set the local authority for a device. Expects a JSON payload with 'device_id' and 'local_authority' fields.
     """
-    device_id = request.json.get('device_id', None)
     if not device_id:
         return jsonify({'error': 'Device ID is required'}), 400
 
