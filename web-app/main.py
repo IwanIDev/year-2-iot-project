@@ -7,19 +7,37 @@ import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 import random
 import data
+import os
+from api import api_view
+from whitenoise import WhiteNoise
 
 # Initialise flask app
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 bootstrap = Bootstrap(app)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = "secretkey"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "default_secret_key")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 280,
+    "pool_size": 2,
+    "max_overflow": 3,
+}
+
+app.wsgi_app = WhiteNoise(app.wsgi_app, root="static/", prefix="static/")
 
 # Initialise database and login manager
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "home"
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db.session.remove()
+
+# Add API blueprint
+app.register_blueprint(api_view)
 
 def get_facts():
     from pathlib import Path
