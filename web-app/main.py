@@ -29,6 +29,10 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "home"
 
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db.session.remove()
+
 # Add API blueprint
 app.register_blueprint(api_view)
 
