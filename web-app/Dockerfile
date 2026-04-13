@@ -9,5 +9,5 @@ COPY . .
 
 EXPOSE 8080
 
-CMD [ "gunicorn", "wsgi" ]
+CMD [ "gunicorn", "--workers", "2", "--threads", "1", "wsgi" ]
 
