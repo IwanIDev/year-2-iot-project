@@ -14,6 +14,7 @@ import numpy as np
 import tensorflow as tf
 from collections import Counter
 import config
+import json
 
 
 #Load Model
@@ -95,7 +96,8 @@ def run_inference(img_tensor):
 def majority_vote(preds):
 	return Counter(preds).most_common(1)[0][0]
 
-
+def send_to_thingsboard(data):
+    config.client.publish("v1/devices/me/telemetry", json.dumps(data), qos=1)
 
 #MAIN LOOP
 
@@ -115,7 +117,7 @@ def detect_waste(picam2):
 
         light_val = grovepi.analogRead(config.light_sens)
 
-    time.sleep(2)
+    time.sleep(1)
     print("System ready. Running Inference")
 
 
@@ -153,6 +155,10 @@ def detect_waste(picam2):
         
     print("Final: ", class_name)
 
+    data = {"waste_type": class_name}
+
+    send_to_thingsboard(data)
+
     with config.i2c_lock:
         setRGB(0,255,0)
         setText(f"Detected:\n{class_name}")
@@ -174,28 +180,38 @@ def detect_mode(picam2):
 
             # Display "Press button to start"
             with config.i2c_lock:
-                grovepi.pinMode(config.button_led, "OUTPUT")
+                
                 grovepi.digitalWrite(config.button_led, 1)  # Turn LED on
-
-                grovepi.pinMode(config.button_led, "INPUT")  # Set back to input to detect presses
                 
                 setRGB(0, 0, 255)  # Blue
                 setText("     DETECT     ")
                 time.sleep(3)
                 setText("Ready!\nPress Button")
 
+            timeout = time.time()
+
             # Wait for the next button press
-            while grovepi.digitalRead(config.button_led) == 0:
-                print(grovepi.digitalRead(config.button_led))
+            while grovepi.digitalRead(config.button) == 1:
+
+                if time.time() - timeout > 10:
+                    with config.i2c_lock:
+                        setRGB(255,255,0)
+                        setText("Exiting\nDetect Mode")
+                        time.sleep(3)
+                    picam2.stop()
+                    config.detect_mode_running = False
+                    config.start_screen_running = True
+                    break
+                
                 time.sleep(0.05)
 
             # Start inference loop with 15-second timeout
             last_button_press = time.time()
             
             while True:
-                button_state = grovepi.digitalRead(config.button_led)
+                button_state = grovepi.digitalRead(config.button)
                 print(button_state)
-                if button_state == 1:
+                if button_state == 0:
                     last_button_press = time.time()
                     detect_waste(picam2)
                 else:

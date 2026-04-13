@@ -1,7 +1,8 @@
 import sys
 import os
 
-sys.path.append("/home/pi/Dexter/GrovePi/Software/Python")
+
+
 sys.path.append(os.path.abspath("."))
 
 import threading

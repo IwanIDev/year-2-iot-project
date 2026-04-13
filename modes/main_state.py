@@ -24,10 +24,10 @@ def button_monitor():
         if config.start_screen_running:
 
             with config.i2c_lock:
-                state = grovepi.digitalRead(config.button_led)
+                state = grovepi.digitalRead(config.button)
                 
-
-            if state == 1:
+            
+            if state == 0:
                 config.start_screen_running = False
                 config.detect_mode_running = True
         
@@ -63,8 +63,8 @@ def intitial_display(message1, message2, delay):
     while True:
         if config.start_screen_running:
 
-            print("Start Running:" + str(config.start_screen_running))
-            print("Detect Mode Running:" + str(config.detect_mode_running))
+            #print("Start Running:" + str(config.start_screen_running))
+            #print("Detect Mode Running:" + str(config.detect_mode_running))
             
             with config.i2c_lock:
                 motion = grovepi.digitalRead(config.pir)
