@@ -19,8 +19,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///db.
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
     "pool_recycle": 280,
-    "pool_size": 5,
-    "max_overflow": 10,
+    "pool_size": 2,
+    "max_overflow": 3,
 }
 
 # Initialise database and login manager
