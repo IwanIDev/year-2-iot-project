@@ -9,6 +9,7 @@ import random
 import data
 import os
 from api import api_view
+from api import ThingsBoardAuth
 from whitenoise import WhiteNoise
 
 # Initialise flask app
@@ -23,8 +24,24 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_size": 2,
     "max_overflow": 3,
 }
+app.config["THINGSBOARD_URL"] = os.getenv("THINGSBOARD_URL", "https://thingsboard.cs.cf.ac.uk")
+app.config["THINGSBOARD_USERNAME"] = os.getenv("THINGSBOARD_USERNAME")
+app.config["THINGSBOARD_PASSWORD"] = os.getenv("THINGSBOARD_PASSWORD")
 
 app.wsgi_app = WhiteNoise(app.wsgi_app, root="static/", prefix="static/")
+
+# Initialise shared ThingsBoard auth client once per app process.
+tb_auth = ThingsBoardAuth(
+    app.config["THINGSBOARD_URL"],
+    app.config["THINGSBOARD_USERNAME"],
+    app.config["THINGSBOARD_PASSWORD"],
+)
+app.extensions["thingsboard_auth"] = tb_auth
+
+try:
+    tb_auth.warmup()
+except Exception as exc:
+    app.logger.warning("ThingsBoard auth warmup failed: %s", exc)
 
 # Initialise database and login manager
 db = SQLAlchemy(app)
