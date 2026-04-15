@@ -39,32 +39,36 @@ output_index = output_details[0]["index"]
 input_dtype = input_details[0]["dtype"]
 
 def feedback_monitor():
-     
+    
+    count = 0
+    
     while True:
-         
+        
         if config.feedback_monitor_on:
-            
-            count = 0
-            
-            state = grovepi.digitalRead(config.button)
+
+            with config.i2c_lock:
+                state = grovepi.digitalRead(config.button)
 
             if state == 0:
                     
                 count += 1
 
+            print(count)
+
             if count >= 2:
                 
                 config.item_flagged = True
                 config.feedback_monitor_on = False
+                count = 0
 
         else:
-            time.sleep(0.01)    
+            time.sleep(0.01)   
 
 def feedback_message(class_name, score):
     
-    setRGB(255,255,0)
-    lcd_helper.scroll_message_two_lines(f"Item classified as {class_name} with average score: {score}", "User flagged as incorrect - Logging Data")
-
+    setRGB(255,155,0)
+    lcd_helper.scroll_message_two_lines(f"User flagged as incorrect", f"Logging Data - Score: {score:.2f}")
+    return
 
 
 def capture_image(picam2):
@@ -144,7 +148,7 @@ def detect_waste(picam2):
     light_val = grovepi.analogRead(config.light_sens)
     print(light_val)
 
-    while light_val <= 40:
+    while light_val <= 150:
 
         with config.i2c_lock:
             setRGB(255,0,0)
@@ -190,60 +194,60 @@ def detect_waste(picam2):
 
     class_name = CLASSES[final_class]
 
-    config.feedback_monitor_on
+    config.feedback_monitor_on = True
 
     if avg_score < 0.75:
          
         with config.i2c_lock:
-            
             setRGB(255,165,0)
             setText(f"Caution\nConfidence Low")
-            time.sleep(2)
+            
+        time.sleep(1)
+        
+        with config.i2c_lock:
             setText(f"Detected:\n{class_name}")
 
-            time.sleep(5)
+        time.sleep(4)
 
-            if config.item_flagged:
-                 
-                feedback_message(class_name, avg_score)
-
-                del images
-                del preds
-
-                config.feedback_monitor_on = False
-                config.item_flagged = False
-
-                return
-            
-
-            data = {"waste_type": class_name}
-
-            send_to_thingsboard(data)
+        if config.item_flagged:
+             
+            feedback_message(class_name, avg_score)
 
             del images
             del preds
 
-            time.sleep(5)
-
             config.feedback_monitor_on = False
+            config.item_flagged = False
+
+            return
+        
+
+        data = {"waste_type": class_name}
+
+        #send_to_thingsboard(data)
+
+        del images
+        del preds
+
+        config.feedback_monitor_on = False
             
         
     elif avg_score < 0.5:
          
-         with config.i2c_lock:
-            
+        with config.i2c_lock:
             setRGB(255,0,0)
             lcd_helper.scroll_message_two_lines("Warning! Confidence very low.", "Please read packaging for further guidance or place item in your general waste bin.")
-            time.sleep(0.5)
             
-            data = {"waste_type": "GENERAL WASTE"}
+        time.sleep(0.5)
+        
+        data = {"waste_type": "GENERAL WASTE"}
 
-            del images
-            del preds
+        del images
+        del preds
 
-            config.feedback_monitor_on = False
+        config.feedback_monitor_on = False
 
-            time.sleep(5)
+        time.sleep(5)
          
     else:    
         print(f"Final: {class_name} with average score {avg_score:.2f}")
@@ -268,7 +272,7 @@ def detect_waste(picam2):
 
         data = {"waste_type": class_name}
 
-        send_to_thingsboard(data)
+        #send_to_thingsboard(data)
 
         del images
         del preds
@@ -318,13 +322,9 @@ def detect_mode(picam2):
             
             while True:
                 button_state = grovepi.digitalRead(config.button)
-                print(button_state)
                 if button_state == 0:
                     last_button_press = time.time()
                     detect_waste(picam2)
-
-                    press_count = 0
-
 
                 else:
                     with config.i2c_lock:

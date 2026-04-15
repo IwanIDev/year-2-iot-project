@@ -16,8 +16,11 @@ import sys
 from picamera2 import Picamera2
 
 # Camera
+
 picam2 = Picamera2()
 picam2.configure(picam2.create_still_configuration())
+
+
 
 def cleanup_camera():
     try:
@@ -44,7 +47,7 @@ grovepi.pinMode(config.pir, "INPUT")
 grovepi.pinMode(config.button_led, "OUTPUT")
 grovepi.digitalWrite(config.button_led, 0)
 
-grovepi.pinMode(config.button_led, "INPUT")
+grovepi.pinMode(config.button, "INPUT")
 
 
 start_thread = threading.Thread(target=intitial_display, args=(f"Next Collection Date {config.collection_date}", f"Bins Taken: {config.collection_type}", 0.3)) 

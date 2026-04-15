@@ -1,6 +1,7 @@
 import time
 import grovepi
 from grove_rgb_lcd import *  # For Grove RGB LCD
+import config
 
 def scroll_message_two_lines(message1, message2, delay=0.3):
     """Scroll text across LCD."""
@@ -12,9 +13,6 @@ def scroll_message_two_lines(message1, message2, delay=0.3):
     max_len = max(len(message1), len(message2))
     
     for i in range(max_len - 15):
-
-        if not config.start_screen_running:
-            break
         
         text = message1[i:i+16] + "\n" + message2[i:i+16]
 
