@@ -15,6 +15,8 @@ client.loop_start()
 
 start_screen_running = True
 detect_mode_running = False
+feedback_monitor_on = False
+item_flagged = False
 
 
 i2c_lock = threading.RLock()

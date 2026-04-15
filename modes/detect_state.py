@@ -15,6 +15,7 @@ import tensorflow as tf
 from collections import Counter
 import config
 import json
+import lcd_helper
 
 
 #Load Model
@@ -36,6 +37,35 @@ input_index = input_details[0]["index"]
 output_index = output_details[0]["index"]
 
 input_dtype = input_details[0]["dtype"]
+
+def feedback_monitor():
+     
+    while True:
+         
+        if config.feedback_monitor_on:
+            
+            count = 0
+            
+            state = grovepi.digitalRead(config.button)
+
+            if state == 0:
+                    
+                count += 1
+
+            if count >= 2:
+                
+                config.item_flagged = True
+                config.feedback_monitor_on = False
+
+        else:
+            time.sleep(0.01)    
+
+def feedback_message(class_name, score):
+    
+    setRGB(255,255,0)
+    lcd_helper.scroll_message_two_lines(f"Item classified as {class_name} with average score: {score}", "User flagged as incorrect - Logging Data")
+
+
 
 def capture_image(picam2):
 
@@ -94,7 +124,14 @@ def run_inference(img_tensor):
 
 	
 def majority_vote(preds):
-	return Counter(preds).most_common(1)[0][0]
+    
+    class_ids = [class_id for class_id, _ in preds]
+    most_common_class = Counter(class_ids).most_common(1)[0][0]
+    
+    scores_for_class = [score for class_id, score in preds if class_id == most_common_class]
+    avg_score = sum(scores_for_class) / len(scores_for_class)
+    
+    return most_common_class, avg_score
 
 def send_to_thingsboard(data):
     config.client.publish("v1/devices/me/telemetry", json.dumps(data), qos=1)
@@ -139,7 +176,7 @@ def detect_waste(picam2):
 
         if class_id is not None:
             print(f"class = {class_id} ({CLASSES[class_id]}) score={score:.2f}")
-            preds.append(class_id)
+            preds.append((class_id, score))
         else:
             print("NONE FOUND")
         
@@ -149,24 +186,95 @@ def detect_waste(picam2):
         print("No Predictions")	
         return
                 
-    final_class = majority_vote(preds)
-        
+    final_class, avg_score = majority_vote(preds)
+
     class_name = CLASSES[final_class]
+
+    config.feedback_monitor_on
+
+    if avg_score < 0.75:
+         
+        with config.i2c_lock:
+            
+            setRGB(255,165,0)
+            setText(f"Caution\nConfidence Low")
+            time.sleep(2)
+            setText(f"Detected:\n{class_name}")
+
+            time.sleep(5)
+
+            if config.item_flagged:
+                 
+                feedback_message(class_name, avg_score)
+
+                del images
+                del preds
+
+                config.feedback_monitor_on = False
+                config.item_flagged = False
+
+                return
+            
+
+            data = {"waste_type": class_name}
+
+            send_to_thingsboard(data)
+
+            del images
+            del preds
+
+            time.sleep(5)
+
+            config.feedback_monitor_on = False
+            
         
-    print("Final: ", class_name)
+    elif avg_score < 0.5:
+         
+         with config.i2c_lock:
+            
+            setRGB(255,0,0)
+            lcd_helper.scroll_message_two_lines("Warning! Confidence very low.", "Please read packaging for further guidance or place item in your general waste bin.")
+            time.sleep(0.5)
+            
+            data = {"waste_type": "GENERAL WASTE"}
 
-    data = {"waste_type": class_name}
+            del images
+            del preds
 
-    send_to_thingsboard(data)
+            config.feedback_monitor_on = False
 
-    with config.i2c_lock:
-        setRGB(0,255,0)
-        setText(f"Detected:\n{class_name}")
+            time.sleep(5)
+         
+    else:    
+        print(f"Final: {class_name} with average score {avg_score:.2f}")
 
-    del images
-    del preds
+        with config.i2c_lock:
+            setRGB(0,255,0)
+            setText(f"Detected:\n{class_name}")
 
-    time.sleep(5)
+        time.sleep(5)
+
+        if config.item_flagged:
+                 
+            feedback_message(class_name, avg_score)
+
+            del images
+            del preds
+
+            config.feedback_monitor_on = False
+            config.item_flagged = False
+
+            return
+
+        data = {"waste_type": class_name}
+
+        send_to_thingsboard(data)
+
+        del images
+        del preds
+
+        config.feedback_monitor_on = False
+
 		
         
 def detect_mode(picam2):
@@ -214,6 +322,10 @@ def detect_mode(picam2):
                 if button_state == 0:
                     last_button_press = time.time()
                     detect_waste(picam2)
+
+                    press_count = 0
+
+
                 else:
                     with config.i2c_lock:
                         setRGB(0,0,255)

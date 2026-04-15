@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.abspath("."))
 
 import threading
-from modes.detect_state import detect_mode
+from modes.detect_state import detect_mode, feedback_monitor
 from modes.main_state import button_monitor, intitial_display
 import grovepi
 import config
@@ -50,10 +50,12 @@ grovepi.pinMode(config.button_led, "INPUT")
 start_thread = threading.Thread(target=intitial_display, args=(f"Next Collection Date {config.collection_date}", f"Bins Taken: {config.collection_type}", 0.3)) 
 monitor_thread = threading.Thread(target=button_monitor)
 detect_thread = threading.Thread(target=detect_mode, args=(picam2,))
+feedback_thread = threading.Thread(target=feedback_monitor)
 
 start_thread.start()
 monitor_thread.start()
 detect_thread.start()
+feedback_thread.start()
 
 
 

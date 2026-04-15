@@ -1,17 +1,24 @@
-import sys
-
-sys.path.append("/home/pi/Dexter/GrovePi/Software/Python")
-
+import time
 import grovepi
+from grove_rgb_lcd import *  # For Grove RGB LCD
 
-#if on d3 led is pin 3 and button is 4
+def scroll_message_two_lines(message1, message2, delay=0.3):
+    """Scroll text across LCD."""
+    
 
-button_led = 4  # LED Button on D3
+    message1 = message1 + " " * 16
+    message2 = message2 + " " * 16
+    
+    max_len = max(len(message1), len(message2))
+    
+    for i in range(max_len - 15):
 
-grovepi.pinMode(button_led, "INPUT")
+        if not config.start_screen_running:
+            break
+        
+        text = message1[i:i+16] + "\n" + message2[i:i+16]
 
-
-while True:
-
-    print(grovepi.digitalRead(button_led))
-
+        with config.i2c_lock:
+            setText(text)
+        
+        time.sleep(delay)
