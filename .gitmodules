@@ -1,0 +1,3 @@
+[submodule "wiki"]
+	path = wiki
+	url = https://git.cardiff.ac.uk/c23010709/iot-group-project.wiki.git
