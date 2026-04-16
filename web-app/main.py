@@ -11,6 +11,9 @@ import os
 from api import api_view
 from api import ThingsBoardAuth
 from whitenoise import WhiteNoise
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Initialise flask app
 app = Flask(__name__, static_folder="static")
