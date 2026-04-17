@@ -59,7 +59,8 @@ async function init(){
                     values: [
                         ["<b>Time</b>"],
                         ["<b>Category</b>"]
-                    ]
+                    ],
+                    fill: {color:"#107AB0"}
                 },
                 "cells":{
                     values: data.table_data,
