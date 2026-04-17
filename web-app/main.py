@@ -13,6 +13,7 @@ from api import ThingsBoardAuth
 from whitenoise import WhiteNoise
 from dotenv import load_dotenv
 from database import db
+from users import Users
 
 load_dotenv()
 

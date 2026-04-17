@@ -4,12 +4,13 @@ metadata:
   name: bin-date-sync
 spec:
   source:
+    type: Git
     git:
-      uri: https://git.cardiff.ac.uk/c23010709/iot-group-project
+      uri: 'https://git.cardiff.ac.uk/c23010709/iot-group-project'
       ref: main
-    context_dir: bin-date-scheduler
     sourceSecret:
       name: iot-gitlab-2026-04-10
+    contextDir: bin-date-scheduler
   strategy:
     type: Docker
     dockerStrategy:
