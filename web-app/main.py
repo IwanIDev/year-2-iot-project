@@ -171,7 +171,7 @@ def leaderboard():
 @app.route("/settings")
 @login_required
 def settings():
-    return render_template("settings.html", user=current_user, password=current_user.password)
+    return render_template("settings.html", user=current_user, password=current_user.password, council = current_user.local_council)
 
 @app.route("/change_password", methods=["GET","POST"])
 @login_required
@@ -194,6 +194,24 @@ def change_password():
         return redirect(url_for("settings"))
     
     return render_template("change_password.html")
+
+@app.route("/change_council", methods=["GET", "POST"])
+@login_required
+def change_council():
+    if request.method == "POST":
+        current_council = request.form.get("local_council")
+        new_council = request.form.get("new_council")
+
+        """
+        Need section here for verifying council exists in dictionary.
+        """
+
+        current_user.local_council = new_council
+        db.session.commit()
+
+        return redirect(url_for("settings"))
+
+    return render_template("change_council.html")
 
 @app.route("/logout")
 @login_required
