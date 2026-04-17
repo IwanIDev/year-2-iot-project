@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: bin-date-sync
+spec:
+  schedule: "0 2 * * *"   # Daily at 02:00 UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: bin-date-sync
+              image: image-registry.openshift-image-registry.svc:5000/iot-web-app/bin-date-sync:latest 
+              env:
+                - name: BIN_API_URL
+                  value: "https://group-30-cm2305.apps.containers.cs.cf.ac.uk/api/bins"
+
