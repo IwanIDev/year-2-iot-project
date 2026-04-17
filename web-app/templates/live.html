@@ -3,11 +3,61 @@
 
 {% block content %}
     <head>
+        <style>
+            .calendar {
+                display: flex;
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .day, .today {
+                background: white;
+                border-radius: 12px;
+                padding: 20px;
+                width: 25%;
+                text-align: center;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            }
+
+            .today{
+                background: #107AB0;
+            }
+
+            .day-name{
+                font-weight: bold;
+            }
+        </style>
     </head>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <body>
         <div class="fact">
             <p>{{ fact }}</p>
+        </div>
+        <div class="split"></div>
+        <div class="calendar">
+            <div class="day">
+                <div class="day-name">Yesterday</div>
+                <div class="bins">-</div>
+            </div>
+
+            <div class="today">
+                <div class="day-name">Today</div>
+                <div class="bins">-</div>
+            </div>
+
+            <div class="day">
+                <div class="day-name">Tomorrow</div>
+                <div class="bins">
+                    Red bag<br>
+                    Blue bag<br>
+                    General Waste
+                </div>
+            </div>
+
+            <div class="day">
+                <div class="day-name">Sunday</div>
+                <div class="bins">-</div>
+            </div>
         </div>
         <div class="split"></div>
         <div>
