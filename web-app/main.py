@@ -163,7 +163,46 @@ def live_data():
 @app.route("/leaderboard")
 @login_required
 def leaderboard():
-    return render_template("leaderboard.html")
+    leaderboard_entries = [
+        {
+            "username": current_user.username,
+            "points": current_user.points,
+            "avatar_text": "".join(part[0].upper() for part in current_user.username.split()[:2]) or "U1",
+            "is_current_user": True,
+        },
+        {
+            "username": "User 2",
+            "points": 23910,
+            "avatar_text": "U2",
+            "is_current_user": False,
+        },
+        {
+            "username": "User 3",
+            "points": 22500,
+            "avatar_text": "U3",
+            "is_current_user": False,
+        },
+        {
+            "username": "User 4",
+            "points": 21880,
+            "avatar_text": "U4",
+            "is_current_user": False,
+        },
+        {
+            "username": "User 5",
+            "points": 20150,
+            "avatar_text": "U5",
+            "is_current_user": False,
+        },
+    ]
+
+    leaderboard_entries.sort(key=lambda entry: entry["points"], reverse=True)
+
+    for index, entry in enumerate(leaderboard_entries, start=1):
+        entry["rank"] = index
+        entry["rank_class"] = f"rank-{index}" if index <= 3 else ""
+
+    return render_template("leaderboard.html", leaderboard_entries=leaderboard_entries)
 
 @app.route("/settings")
 @login_required

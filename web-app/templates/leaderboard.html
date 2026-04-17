@@ -2,10 +2,36 @@
 {% set name = "leaderboard" %}
 
 {% block content %}
-    <!DOCTYPE html>
-    <html lang="en">
-        <body>
-            <h1>Leaderboard</h1>
-        </body>
-    </html>
+<section class="leaderboard-page">
+    <h1 class="title">Leaderboard</h1>
+
+    <div class="leaderboard-card">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th scope="col">Rank</th>
+                    <th scope="col">User</th>
+                    <th scope="col" class="th-score">Points</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in leaderboard_entries %}
+                <tr{% if entry.rank_class %} class="{{ entry.rank_class }}"{% endif %}>
+                    <td class="rank">{{ entry.rank }}</td>
+                    <td class="user">
+                        <img src="https://placehold.co/56?text={{ entry.avatar_text }}" alt="Avatar for {{ entry.username }}" class="avatar">
+                        <span class="username">
+                            {{ entry.username }}{% if entry.is_current_user %} (You){% endif %}
+                        </span>
+                    </td>
+                    <td class="score">{{ "{:,}".format(entry.points) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="Milestones">
+        <h1>Milestone badges</h1>
+    </div>
+</section>
 {% endblock %}
