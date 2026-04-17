@@ -4,6 +4,8 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_bootstrap import Bootstrap
 from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.pyplot as plt
+
+from council.setup_council import setup_council
 plt.switch_backend('agg')
 import random
 import data
@@ -14,6 +16,7 @@ from whitenoise import WhiteNoise
 from dotenv import load_dotenv
 from database import db
 from users import Users
+from council import Council
 
 load_dotenv()
 
@@ -80,8 +83,11 @@ FACTS = get_facts()
 
 # create database
 with app.app_context():
-    #db.drop_all() # USE TO ADD NEW COLUMN IF ALL DATA CAN BE LOST
+    # db.drop_all() # USE TO ADD NEW COLUMN IF ALL DATA CAN BE LOST
     db.create_all()
+
+with app.app_context():
+    setup_council()
 
 # load user for flask-login
 @login_manager.user_loader
