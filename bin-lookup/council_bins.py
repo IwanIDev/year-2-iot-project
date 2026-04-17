@@ -1,5 +1,5 @@
 wales_bins = {
-    "isle_of_anglesey": {
+    "isle of anglesey": {
         "paper": "Red Box",
         "plastic": "Blue Box",
         "metal": "Blue Box",
@@ -97,7 +97,7 @@ wales_bins = {
         "general_waste": "Black Bin"
     },
 
-    "neath_port_talbot": {
+    "neath port talbot": {
         "glass": "Green Box",
         "paper": "Blue Bag",
         "plastic": "Orange Bag",
@@ -115,7 +115,7 @@ wales_bins = {
         "general_waste": "Black Bin"
     },
 
-    "vale_of_glamorgan": {
+    "vale of glamorgan": {
         "glass": "Green Box",
         "paper": "Blue Bag",
         "plastic": "Red Bag",
@@ -133,7 +133,7 @@ wales_bins = {
         "general_waste": "Black Bin"
     },
 
-    "rhondda_cynon_taf": {
+    "rhondda cynon taf": {
         "glass": "Green Box",
         "paper": "Blue Bag",
         "plastic": "Orange Bag",
@@ -142,7 +142,7 @@ wales_bins = {
         "general_waste": "Black Bin"
     },
 
-    "merthyr_tydfil": {
+    "merthyr tydfil": {
         "paper": "Blue Bag",
         "plastic": "Blue Bag",
         "metal": "Blue Bag",
@@ -159,7 +159,7 @@ wales_bins = {
         "general_waste": "Black Bin"
     },
 
-    "blaenau_gwent": {
+    "blaenau gwent": {
         "paper": "Blue Bag",
         "plastic": "Blue Bag",
         "metal": "Blue Bag",

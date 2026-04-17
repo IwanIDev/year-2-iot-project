@@ -87,9 +87,9 @@
                 </p>
                 <p class="form_element">
                     
-                    <label for="local_council">Select your council:</label>
+                    <label for="council">Select your council:</label>
 
-                    <select id="council" name="council">
+                    <select id="councils" name="council">
                     <option value="1">Blaenau Gwent</option>
                     <option value="2">Bridgend</option>
                     <option value="3">Caerphilly</option>
@@ -112,8 +112,14 @@
                     <option value="20">Torfaen</option>
                     <option value="21">Vale of Glamorgan</option>
                     <option value="22">Wrexham</option>
-</select>
+                    </select>
                 </p>
+
+                <p class="form_element">
+                    <label for="UPRN">Unique Property Reference Number (UPRN)</label>
+                    <input type="number" name="URPN" required />
+                    <p>Find your UPRN</p>
+                    <a href="https://www.findmyaddress.co.uk" target="_blank" rel="noopener noreferrer" here></a>
             </div>
             <button type="submit">Sign Up</button>
         </form>

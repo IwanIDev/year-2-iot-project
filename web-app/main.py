@@ -104,9 +104,11 @@ def register():
             return render_template("home.html", error="Device ID already taken.")
         # check the id matches a thingsboard device
 
-        local_council = request.form.get("local_council")
+        local_council_id = request.form.get("council")
 
-        new_user = Users(username=username, password=hashed_password, device_id=id, local_council=local_council)
+        UPRN = request.form.get("UPRN")
+
+        new_user = Users(username=username, password=hashed_password, device_id=id, local_council_id=local_council_id, UPRN=UPRN)
         db.session.add(new_user)
         db.session.commit()
 
