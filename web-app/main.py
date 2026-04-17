@@ -12,6 +12,8 @@ from api import api_view
 from api import ThingsBoardAuth
 from whitenoise import WhiteNoise
 from dotenv import load_dotenv
+from database import db
+from users import Users
 
 load_dotenv()
 
@@ -47,7 +49,7 @@ except Exception as exc:
     app.logger.warning("ThingsBoard auth warmup failed: %s", exc)
 
 # Initialise database and login manager
-db = SQLAlchemy(app)
+db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "home"
@@ -75,12 +77,6 @@ def get_facts():
 
 FACTS = get_facts()
 
-class Users(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(250), unique=True, nullable=False)
-    password = db.Column(db.String(250), nullable=False)
-    device_id = db.Column(db.String(250), unique=True, nullable=False)
-    local_council = db.Column(db.String(250), nullable=False)
 
 # create database
 with app.app_context():
