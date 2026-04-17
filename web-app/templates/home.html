@@ -25,7 +25,9 @@
             display: table-row;
         }
 
-        label,input{
+        label,
+        input,
+        select{
             width: 50%;
             display: table-cell;
             margin: 3px;
@@ -35,9 +37,12 @@
             text-align: right;
         }
 
-        input{
+        input,
+        select{
             margin-right: 100%;
             border-radius: 10px;
+            padding: 6px 10px;
+            box-sizing: border-box;
         }
 
         button{
@@ -86,33 +91,32 @@
                     <input type="text" name="device_id" required value="{{ id }}" />
                 </p>
                 <p class="form_element">
-                    
                     <label for="local_council">Select your council:</label>
-
-                    <select id="council" name="council">
-                    <option value="1">Blaenau Gwent</option>
-                    <option value="2">Bridgend</option>
-                    <option value="3">Caerphilly</option>
-                    <option value="4">Cardiff</option>
-                    <option value="5">Carmarthenshire</option>
-                    <option value="6">Ceredigion</option>
-                    <option value="7">Conwy</option>
-                    <option value="8">Denbighshire</option>
-                    <option value="9">Flintshire</option>
-                    <option value="10">Gwynedd</option>
-                    <option value="11">Isle of Anglesey</option>
-                    <option value="12">Merthyr Tydfil</option>
-                    <option value="13">Monmouthshire</option>
-                    <option value="14">Neath Port Talbot</option>
-                    <option value="15">Newport</option>
-                    <option value="16">Pembrokeshire</option>
-                    <option value="17">Powys</option>
-                    <option value="18">Rhondda Cynon Taf</option>
-                    <option value="19">Swansea</option>
-                    <option value="20">Torfaen</option>
-                    <option value="21">Vale of Glamorgan</option>
-                    <option value="22">Wrexham</option>
-</select>
+                    <select id="local_council" name="local_council" required>
+                        <option value="" selected disabled>Select your council</option>
+                        <option value="Blaenau Gwent">Blaenau Gwent</option>
+                        <option value="Bridgend">Bridgend</option>
+                        <option value="Caerphilly">Caerphilly</option>
+                        <option value="Cardiff">Cardiff</option>
+                        <option value="Carmarthenshire">Carmarthenshire</option>
+                        <option value="Ceredigion">Ceredigion</option>
+                        <option value="Conwy">Conwy</option>
+                        <option value="Denbighshire">Denbighshire</option>
+                        <option value="Flintshire">Flintshire</option>
+                        <option value="Gwynedd">Gwynedd</option>
+                        <option value="Isle of Anglesey">Isle of Anglesey</option>
+                        <option value="Merthyr Tydfil">Merthyr Tydfil</option>
+                        <option value="Monmouthshire">Monmouthshire</option>
+                        <option value="Neath Port Talbot">Neath Port Talbot</option>
+                        <option value="Newport">Newport</option>
+                        <option value="Pembrokeshire">Pembrokeshire</option>
+                        <option value="Powys">Powys</option>
+                        <option value="Rhondda Cynon Taf">Rhondda Cynon Taf</option>
+                        <option value="Swansea">Swansea</option>
+                        <option value="Torfaen">Torfaen</option>
+                        <option value="Vale of Glamorgan">Vale of Glamorgan</option>
+                        <option value="Wrexham">Wrexham</option>
+                    </select>
                 </p>
             </div>
             <button type="submit">Sign Up</button>
