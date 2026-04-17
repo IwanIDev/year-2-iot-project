@@ -1,0 +1,25 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: bin-date-sync
+spec:
+  source:
+    git:
+      uri: https://git.cardiff.ac.uk/c23010709/iot-group-project
+      ref: main
+    context_dir: bin-date-scheduler
+    sourceSecret:
+      name: iot-gitlab-2026-04-10
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: bin-date-sync:latest
+  triggers:
+    - type: ConfigChange
+    - type: Generic 
+      generic:
+        secret: iot-web-wsgi-generic-webhook-secret 

@@ -1,7 +1,9 @@
+from datetime import datetime, timedelta
 from flask import Blueprint, current_app, jsonify, request
 import httpx
 import logging
-from .collection_dates import parse_collection_dates
+from .collection_dates import BinCollection, BinType, get_collection_dates_for_device, parse_collection_dates, update_collection_dates_in_thingsboard
+from users import Users
 
 
 api_view = Blueprint('api_view', __name__, url_prefix='/api')
@@ -105,3 +107,48 @@ def set_bin_collection_dates(device_id: str):
 
     return jsonify({'message': 'Collection dates updated successfully'}), 200
 
+@api_view.route('/bins', methods=['GET'])
+def update_bin_dates():
+    """
+    Endpoint to trigger a check of each device's bin collection dates,
+    updating any dates that have passed with the next collection date.
+    """
+    # Check every user's device on Thingsboard and get bin collection dates
+    devices = Users.query.with_entities(Users.device_id).all()
+    
+    devices_to_update = []
+
+    if devices is None:
+        return jsonify({'message': 'No devices found'}), 200
+
+    for device in devices:
+        device_id = device.device_id
+        dates = get_collection_dates_for_device(device_id, current_app.extensions.get("thingsboard_auth"))
+        for type, date_str in dates.items():
+            try:
+                collection_date = datetime.fromisoformat(date_str)
+                if collection_date < datetime.now():
+                    devices_to_update.append(device_id)
+                    break
+            except ValueError:
+                logging.error(f"Invalid date format for device {device_id} bin type {type}: {date_str}")
+                continue
+
+    # If collection date has passed, fetch new collection dates and update Thingsboard attributes
+    if not devices_to_update:
+        return jsonify({'message': 'No devices with past collection dates found'}), 200
+
+    # TODO: Fetch new collection dates from external API
+    # For now, I'll just add 7 days to the existing collection date.
+    for device in devices_to_update:
+        for type, date_str in get_collection_dates_for_device(device, current_app.extensions.get("thingsboard_auth")).items():
+            try:
+                collection_date = datetime.fromisoformat(date_str)
+                if collection_date < datetime.now():
+                    new_date = (collection_date + timedelta(days=7)).isoformat()
+                    update_collection_dates_in_thingsboard(device, [BinCollection(bin_type=BinType(type), collection_date=datetime.fromisoformat(new_date))], current_app.extensions.get("thingsboard_auth"))
+            except ValueError:
+                logging.error(f"Invalid date format for device {device} bin type {type}: {date_str}")
+                continue
+
+    return jsonify({'message': 'Bin collection dates updated successfully'}), 200
