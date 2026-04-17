@@ -16,13 +16,13 @@ async function init() {
                 orientation:"v",
             }];
             layout = {
-                title:"Recycling by hour",
+                title:"Responsible refuse by hour",
                 xaxis:{
                     range:[-1,25],
                     title:"Time of day"
                 },
                 yaxis:{
-                    title:"Items recycled"
+                    title:"Items disposed of"
                 }
             };
             Plotly.newPlot("hourlyAverage", chart_data, layout);

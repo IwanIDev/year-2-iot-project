@@ -11,7 +11,7 @@ async function init(){
                 values: data.ys[0],
                 type:'pie',
             }];
-            var layout = {title:'Recycling by type'};
+            var layout = {title:'Responsible refuse by type'};
             Plotly.newPlot("typeRatio",chart_data,layout);
 
             // all types on days this week
@@ -22,7 +22,7 @@ async function init(){
                 type:"scatter"
             }];
             layout = {
-                title:"Recycling by day",
+                title:"Responsible refuse by day",
                 xaxis:{
                     range:[-1,chart_data[0].x.length],
                     title:"Days"
@@ -47,10 +47,28 @@ async function init(){
                     title:"Time of day"
                 },
                 yaxis:{
-                    title:"Items recycled"
+                    title:"Total items"
                 }
             };
             Plotly.newPlot("hourlyAverage", chart_data, layout);
+
+            // history
+            chart_data = [{
+                type: "table",
+                "header":{
+                    values: [
+                        ["<b>Time</b>"],
+                        ["<b>Category</b>"]
+                    ]
+                },
+                "cells":{
+                    values: data.table_data,
+                }
+            }];
+            layout = {
+                title:"History"
+            };
+            Plotly.newPlot("history",chart_data,layout)
         })
 }
 

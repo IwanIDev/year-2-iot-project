@@ -84,6 +84,7 @@ class Users(UserMixin, db.Model):
 
 # create database
 with app.app_context():
+    #db.drop_all() # USE TO ADD NEW COLUMN IF ALL DATA CAN BE LOST
     db.create_all()
 
 # load user for flask-login

@@ -159,19 +159,35 @@ def count_times(data):
         y[h] += 1
     return x,y
 
+def get_dt(ts):
+    """
+        Gets a human-readable datetime string from a timestamp
+
+        Parameters:
+            ts: timestamp
+        
+        Returns
+            string: dd/mm/yyyy h:m
+    """
+    dt = datetime.fromtimestamp(ts)
+    return dt.strftime("%d/%m/%Y %H:%M")
+
 def dashboard_data(time):
     """
     Get the data to display on the dashboard screen
 
     Returns
         data:   dict
-            "xs":   list of lists for Pyplot graphs
-            "ys":   list of lists for Pyplot graphs  
+            "xs":           list of lists for Pyplot graphs
+            "ys":           list of lists for Pyplot graphs
+            "table_data":   list of lists of columns for Pyplot table
     """
     items = results_in_time(DATA,time)
 
     x1,y1 = count_days(items)
     x2,y2 = count_times(items)
+    td = [[get_dt(i["ts"]) for i in reversed(items)],
+          [i["value"] for i in reversed(items)]]
 
     data = {
         "xs":[
@@ -183,7 +199,8 @@ def dashboard_data(time):
             count_types(items),
             y1,
             y2
-        ]
+        ],
+        "table_data":td
     }
 
     return data
