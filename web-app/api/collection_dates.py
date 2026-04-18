@@ -47,7 +47,7 @@ def update_collection_dates_in_thingsboard(device_id: str, collection_dates: Lis
     
     def _post_attributes(force_refresh=False):
         return httpx.post(
-            f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/attributes/SHARED_SCOPE",
+            f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/SHARED_SCOPE",
             json=thingsboard_payload,
             headers=tb_auth.auth_headers(force_refresh=force_refresh),
             timeout=10,
@@ -69,13 +69,13 @@ def get_collection_dates_for_device(device_id: str, tb_auth) -> Dict[str, str]:
     """
     try:
         r = httpx.get(
-            f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/attributes/SHARED_SCOPE",
+            f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/values/attributes/SHARED_SCOPE",
             headers=tb_auth.auth_headers(),
             timeout=10,
         )
         if r.is_success:
             data = r.json()
-            return data.get("collection_dates", {})
+            return data[0].get("value", {})
         else:
             logging.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {r.text}")
             return {}

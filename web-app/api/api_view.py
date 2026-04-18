@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from flask import Blueprint, current_app, jsonify, request
 import httpx
 import logging
@@ -89,7 +89,7 @@ def set_bin_collection_dates(device_id: str):
     
     def _post_attributes(force_refresh=False):
         return httpx.post(
-            f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/attributes/SHARED_SCOPE",
+            f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/SHARED_SCOPE",
             json=thingsboard_payload,
             headers=tb_auth.auth_headers(force_refresh=force_refresh),
             timeout=10,
@@ -127,7 +127,7 @@ def update_bin_dates():
         for type, date_str in dates.items():
             try:
                 collection_date = datetime.fromisoformat(date_str)
-                if collection_date < datetime.now():
+                if collection_date < datetime.now(timezone.utc):
                     devices_to_update.append(device_id)
                     break
             except ValueError:
@@ -144,7 +144,7 @@ def update_bin_dates():
         for type, date_str in get_collection_dates_for_device(device, current_app.extensions.get("thingsboard_auth")).items():
             try:
                 collection_date = datetime.fromisoformat(date_str)
-                if collection_date < datetime.now():
+                if collection_date < datetime.now(timezone.utc):
                     new_date = (collection_date + timedelta(days=7)).isoformat()
                     update_collection_dates_in_thingsboard(device, [BinCollection(bin_type=BinType(type), collection_date=datetime.fromisoformat(new_date))], current_app.extensions.get("thingsboard_auth"))
             except ValueError:
