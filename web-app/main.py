@@ -246,19 +246,20 @@ def change_password():
 @app.route("/change_council", methods=["GET", "POST"])
 @login_required
 def change_council():
-    if request.method == "POST":
-        new_council = request.form.get("new_council")
-        council = Council.query.filter_by(id=new_council).first()
-        if not council:
-            return render_template("change_council.html", error="Selected council does not exist.")
-        current_user.local_council_id = new_council
-        db.session.commit()
+    if not request.method == "POST":
+        # Get list of councils for dropdown
+        councils = Council.query.all()
+        return render_template("change_council.html", councils=councils)
 
-        return redirect(url_for("settings"))
+    new_council = request.form.get("new_council")
+    council = Council.query.filter_by(id=new_council).first()
+    if not council:
+        return render_template("change_council.html", error="Selected council does not exist.")
+    current_user.local_council_id = new_council
+    db.session.commit()
 
-    # Get list of councils for dropdown
-    councils = Council.query.all()
-    return render_template("change_council.html", councils=councils)
+    return redirect(url_for("settings"))
+
 
 @app.route("/logout")
 @login_required
