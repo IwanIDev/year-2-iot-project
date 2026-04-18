@@ -217,7 +217,9 @@ def leaderboard():
 @app.route("/settings")
 @login_required
 def settings():
-    return render_template("settings.html", user=current_user, password=current_user.password, council = current_user.local_council)
+    # Get council name and ID for template
+    council = Council.query.filter_by(id=current_user.local_council_id).first()
+    return render_template("settings.html", user=current_user, password=current_user.password, council = council)
 
 @app.route("/change_password", methods=["GET","POST"])
 @login_required
@@ -245,19 +247,18 @@ def change_password():
 @login_required
 def change_council():
     if request.method == "POST":
-        current_council = request.form.get("local_council")
         new_council = request.form.get("new_council")
-
-        """
-        Need section here for verifying council exists in dictionary.
-        """
-
-        current_user.local_council = new_council
+        council = Council.query.filter_by(id=new_council).first()
+        if not council:
+            return render_template("change_council.html", error="Selected council does not exist.")
+        current_user.local_council_id = new_council
         db.session.commit()
 
         return redirect(url_for("settings"))
 
-    return render_template("change_council.html")
+    # Get list of councils for dropdown
+    councils = Council.query.all()
+    return render_template("change_council.html", councils=councils)
 
 @app.route("/logout")
 @login_required

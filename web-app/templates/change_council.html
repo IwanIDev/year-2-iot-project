@@ -5,12 +5,13 @@
 <h1>Change Local Council</h1>
 <form method="POST">
     <div class="form-group">
-        <label for="current_council">Current Council:</label>
-        <input type="text" class="form-control" id="current_council" name="current_council" required>
-    </div>
-    <div class="form-group">
         <label for="new_council">New Council:</label>
-        <input type="text" class="form-control" id="new_council" name="new_council" required>
+        <!-- Dropdown list of councils with IDs as values -->
+        <select class="form-control" id="new_council" name="new_council" required>
+            {% for council in councils %}
+            <option value="{{ council.id }}" {% if council.id == current_council_id %}selected{% endif %}>{{ council.name }}</option>
+            {% endfor %}
+          </select>
     </div>
     <button type="submit" class="btn btn-primary">Change Council</button>
     <a href="{{ url_for('settings') }}" class="btn btn-secondary">Cancel</a>
