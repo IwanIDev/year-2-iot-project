@@ -32,6 +32,7 @@ def setup_council():
         existing_council = Council.query.filter_by(name=council["name"]).first()
         if not existing_council:
             new_council = Council(
+                id=council["id"],
                 name=council["name"],
                 collectionName=council["collectionName"] if council["collectionName"] else "",
                 url=council["url"] if council["url"] else ""
