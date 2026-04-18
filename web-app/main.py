@@ -36,6 +36,8 @@ app.config["THINGSBOARD_URL"] = os.getenv("THINGSBOARD_URL", "https://thingsboar
 app.config["THINGSBOARD_USERNAME"] = os.getenv("THINGSBOARD_USERNAME")
 app.config["THINGSBOARD_PASSWORD"] = os.getenv("THINGSBOARD_PASSWORD")
 
+app.config["BIN_COLLECTION_API"] = os.getenv("BIN_COLLECTION_API", "https://group-30-collection.apps.containers.cs.cf.ac.uk")
+
 app.wsgi_app = WhiteNoise(app.wsgi_app, root="static/", prefix="static/")
 
 # Initialise shared ThingsBoard auth client once per app process.

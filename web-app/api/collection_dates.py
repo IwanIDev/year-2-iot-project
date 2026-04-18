@@ -1,9 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Optional
+from flask import current_app as app
 import httpx
 import logging
+from users.Users import Users
+import ssl
+import truststore
 
 class BinType(Enum):
     GARDEN_WASTE = "garden_waste"
@@ -82,4 +86,76 @@ def get_collection_dates_for_device(device_id: str, tb_auth) -> Dict[str, str]:
     except Exception as exc:
         logging.error(f"ThingsBoard request failed for device {device_id}: {exc}")
         return {}
+
+def fetch_new_collection_dates(user: Users) -> List[Optional[BinCollection]]:
+    """
+    Get new collection dates from the Bin Collection API for a user.
+    """
+    council = user.council
+    uprn = user.UPRN
+    api_url = council.url
+    council_name = council.collectionName
+    url = app.config["BIN_COLLECTION_API"]
+    
+    if not api_url:
+        logging.warning(f"No API URL configured for council {council_name}")
+
+    if not council_name:
+        logging.warning(f"No collection name configured for council {council_name}")
+
+    bin_collection_api_url = f"{url}/api/bin_collection/{council_name}"
+    api_params = {
+        "uprn": uprn if uprn else None,
+        "url": api_url if api_url else None
+    }
+
+    ctx = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+
+    data = []
+
+    with httpx.Client(verify=ctx) as client:
+        r = httpx.get(
+            bin_collection_api_url,
+            params=api_params,
+            timeout=10,
+        )
+
+        if not r.is_success:
+            logging.error(f"Failed to fetch collection dates for user {user.id} from Bin Collection API. Response: {r.text}")
+            return []
+
+        # Parse the response for collection dates
+        """
+        Expected response format:
+            "bins": [
+                {"type": "Food", "collectionDate": "23/04/2026"},
+                {"type": "Recycling", "collectionDate": "23/04/2026"},
+                {"type": "General", "collectionDate": "30/04/2026"},
+                {"type": "Glass", "collectionDate": "30/04/2026"},
+                {"type": "Food", "collectionDate": "30/04/2026"},
+                {"type": "Recycling", "collectionDate": "30/04/2026"}
+            ]
+        """
+        data = r.json()
+
+    bins = data.get("bins", [])
+    collection_dates = []
+    for bin in bins:
+        bin_type_str = bin.get("type", "").lower().replace(" ", "_")
+        try:
+            bin_type = BinType(bin_type_str)
+        except ValueError:
+            logging.warning(f"Unknown bin type from API for user {user.id}: {bin_type_str}")
+            continue
+        
+        date_str = bin.get("collectionDate", "")
+        try:
+            collection_date = datetime.strptime(date_str, "%d/%m/%Y")
+        except ValueError:
+            logging.warning(f"Invalid date format from API for user {user.id} bin type {bin_type_str}: {date_str}")
+            continue
+        
+        collection_dates.append(BinCollection(bin_type=bin_type, collection_date=collection_date))
+        
+        return collection_dates
 
