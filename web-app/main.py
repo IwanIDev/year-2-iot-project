@@ -87,7 +87,9 @@ with app.app_context():
     db.create_all()
 
 with app.app_context():
-    setup_council()
+    inserted_councils = setup_council()
+    if inserted_councils:
+        app.logger.info("Inserted %s councils during startup setup", inserted_councils)
 
 # load user for flask-login
 @login_manager.user_loader
