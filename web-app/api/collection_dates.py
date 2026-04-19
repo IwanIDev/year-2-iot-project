@@ -1,19 +1,24 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
+import json
+from pathlib import Path
 from typing import Dict, List, Optional
 from flask import current_app as app
 import httpx
 import logging
 from users.Users import Users
-import ssl
-import truststore
+import sys
 
 class BinType(Enum):
     GARDEN_WASTE = "garden_waste"
-    GENERAL_WASTE = "general_waste"
+    GENERAL_WASTE = "general"
     PAPER = "paper"
     PLASTIC = "plastic"
+    FOOD = "food"
+    RECYCLING = "recycling"
+    GLASS = "glass"
+    
 
 @dataclass
 class BinCollection:
@@ -45,8 +50,10 @@ def update_collection_dates_in_thingsboard(device_id: str, collection_dates: Lis
     Update the collection dates for a device in ThingsBoard as shared attributes.
     Returns True if the update was successful, False otherwise.
     """
+    # Note: ThingsBoard expects dates in ISO 8601 format, and we want to ensure they are in UTC with 'Z' suffix.
+    # For some reason, Python doesn't output with Z suffix.
     thingsboard_payload = {
-        "collection_dates": {bc.bin_type.value: bc.collection_date.isoformat() for bc in collection_dates}
+        "collection_dates": {bc.bin_type.value: bc.collection_date.isoformat().replace("+00:00", "Z") for bc in collection_dates}
     }
     
     def _post_attributes(force_refresh=False):
@@ -109,12 +116,11 @@ def fetch_new_collection_dates(user: Users) -> List[Optional[BinCollection]]:
         "url": api_url if api_url else None
     }
 
-    ctx = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-
+    cert_file = Path(sys.argv[0]).resolve().parent / "cert.pem"
     data = []
 
-    with httpx.Client(verify=ctx) as client:
-        r = httpx.get(
+    with httpx.Client(verify=cert_file.as_posix()) as client:
+        r = client.get(
             bin_collection_api_url,
             params=api_params,
             timeout=10,
@@ -136,7 +142,9 @@ def fetch_new_collection_dates(user: Users) -> List[Optional[BinCollection]]:
                 {"type": "Recycling", "collectionDate": "30/04/2026"}
             ]
         """
-        data = r.json()
+        data_str = r.json()
+        # Note: the API seems to double-encode the JSON response (annoyingly)
+        data = json.loads(data_str) if isinstance(data_str, str) else data_str
 
     bins = data.get("bins", [])
     collection_dates = []
@@ -145,17 +153,18 @@ def fetch_new_collection_dates(user: Users) -> List[Optional[BinCollection]]:
         try:
             bin_type = BinType(bin_type_str)
         except ValueError:
-            logging.warning(f"Unknown bin type from API for user {user.id}: {bin_type_str}")
+            app.logger.warning(f"Unknown bin type from API for user {user.id}: {bin_type_str}")
             continue
         
         date_str = bin.get("collectionDate", "")
         try:
             collection_date = datetime.strptime(date_str, "%d/%m/%Y")
+            collection_date = collection_date.replace(tzinfo=timezone.utc)  # Assume API dates are in UTC
         except ValueError:
-            logging.warning(f"Invalid date format from API for user {user.id} bin type {bin_type_str}: {date_str}")
+            app.logger.warning(f"Invalid date format from API for user {user.id} bin type {bin_type_str}: {date_str}")
             continue
         
         collection_dates.append(BinCollection(bin_type=bin_type, collection_date=collection_date))
-        
-        return collection_dates
+
+    return collection_dates
 
