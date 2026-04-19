@@ -15,6 +15,6 @@ class Users(UserMixin, db.Model):
         nullable=False
     )
 
-    UPRN = db.Column(db.Integer, nullable=False)
+    UPRN = db.Column(db.String(250), nullable=False)
     points = db.Column(db.Integer, default=0)
     council = db.relationship("Council")
