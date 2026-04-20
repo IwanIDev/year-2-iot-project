@@ -35,29 +35,18 @@
         </div>
         <div class="split"></div>
         <div class="calendar">
-            <div class="day">
-                <div class="day-name">Yesterday</div>
-                <div class="bins">-</div>
-            </div>
-
-            <div class="today">
-                <div class="day-name">Today</div>
-                <div class="bins">-</div>
-            </div>
-
-            <div class="day">
-                <div class="day-name">Tomorrow</div>
-                <div class="bins">
-                    Red bag<br>
-                    Blue bag<br>
-                    General Waste
-                </div>
-            </div>
-
-            <div class="day">
-                <div class="day-name">Sunday</div>
-                <div class="bins">-</div>
-            </div>
+            {% for day in bin_days.keys() %}
+                {% if day == "Today" %}
+                    <div class="today">
+                {% else %}
+                    <div class="day">
+                {% endif %}
+                        <div class="day-name">{{day}}</div>
+                        {% for bin in bin_days[day] %}
+                            <div class="bins">{{bin}}</div>
+                        {% endfor %}
+                    </div>
+            {% endfor %}
         </div>
         <div class="split"></div>
         <div>
@@ -65,7 +54,7 @@
             <p>most recent item</p>
         </div>
         <div>
-            <h1 id="today_count">...</h1> <<!-- Use This number to update points in leaderboard-->
+            <h1 id="today_count">...</h1> <!-- Use This number to update points in leaderboard-->
             <p>items scanned today</p>
         </div>
         <br>

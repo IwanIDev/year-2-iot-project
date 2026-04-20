@@ -166,7 +166,13 @@ def dashboard_data():
 @app.route("/live")
 @login_required
 def live():
-    return render_template("live.html",fact=get_fact())
+    bin_days = {
+        "Yesterday":["-"],
+        "Today":["-"],
+        "Tomorrow":["Red bag","Blue bag","General Waste"],
+        "Wednesday":["-"]
+    }
+    return render_template("live.html",fact=get_fact(),bin_days=bin_days)
 
 @app.route("/live/data")
 @login_required
