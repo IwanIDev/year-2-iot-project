@@ -4,6 +4,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_bootstrap import Bootstrap
 from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.pyplot as plt
+from threading import Thread
 
 from council.setup_council import setup_council
 plt.switch_backend('agg')
@@ -12,6 +13,7 @@ import data
 import os
 from api import api_view
 from api import ThingsBoardAuth
+from telemetry.subscribe_telemetry import subscribe
 from whitenoise import WhiteNoise
 from dotenv import load_dotenv
 from database import db
@@ -119,6 +121,15 @@ def register():
         db.session.commit()
 
         login_user(new_user)
+        
+        # Start telemetry subscription in background
+        tb_token = tb_auth.get_token()
+        Thread(
+            target=subscribe,
+            args=(app, tb_token, new_user.device_id),
+            daemon=True
+        ).start()
+        
         return redirect(url_for("live"))
     
     return render_template("home.html")
@@ -134,6 +145,15 @@ def login():
         if user:
             if check_password_hash(user.password, password):
                 login_user(user)
+                
+                # Start telemetry subscription in background
+                tb_token = tb_auth.get_token()
+                Thread(
+                    target=subscribe,
+                    args=(app, tb_token, user.device_id),
+                    daemon=True
+                ).start()
+                
                 return redirect(url_for("live"))
             return render_template("home.html", error="Incorrect password.")
         return render_template("home.html", error="Username does not exist.")

@@ -3,23 +3,27 @@ Gets and interprets thingsboard data to be displayed
 """
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-import random
+from flask_login import current_user
+from telemetry.Telemetry import Telemetry
 
 TYPES = ["PLASTIC","PAPER","GLASS","GENERAL WASTE","FOOD"]
 
-def rand_last_week():
-    # TEMPORARY FOR GENERATING DUMMY DATA
-    # RETURNS RANDOM TIMESTAMP IN THE LAST WEEK
-    rand_time_today = datetime.now().replace(hour=random.randint(0,23),minute=random.randint(0,59))
-    rand_time_today = rand_time_today - timedelta(days=random.randint(0,365))
-    return datetime.timestamp(rand_time_today)
-
-dummy_json = {
-    "category":[
-        {"ts": rand_last_week(),
-         "value":random.choice(TYPES)} for _ in range(1000)
-    ]
-}
+def get_user_telemetry():
+    """
+    Get all telemetry data for the current logged-in user
+    Returns list of dicts with 'ts' and 'value' keys for consistency with existing code
+    """
+    if not current_user.is_authenticated:
+        return []
+    
+    items = Telemetry.query.filter_by(deviceId=current_user.device_id).all()
+    data = []
+    for item in items:
+        data.append({
+            "ts": item.timestamp.timestamp(),
+            "value": item.wasteType
+        })
+    return data
 
 def sort(data):
     """
@@ -44,8 +48,6 @@ def sort(data):
                 output.insert(i,item)
                 break
     return output
-
-DATA = sort(dummy_json["category"])
 
 def results_in_time(data,time="all"):
     """
@@ -182,14 +184,15 @@ def dashboard_data(time):
             "ys":           list of lists for Pyplot graphs
             "table_data":   list of lists of columns for Pyplot table
     """
-    items = results_in_time(DATA,time)
+    data = get_user_telemetry()
+    items = results_in_time(data, time)
 
     x1,y1 = count_days(items)
     x2,y2 = count_times(items)
     td = [[get_dt(i["ts"]) for i in reversed(items)],
           [i["value"] for i in reversed(items)]]
 
-    data = {
+    data_output = {
         "xs":[
             TYPES,
             x1,
@@ -203,7 +206,7 @@ def dashboard_data(time):
         "table_data":td
     }
 
-    return data
+    return data_output
 
 def live_data():
     """
@@ -216,7 +219,8 @@ def live_data():
             "xs":   list of lists for Pyplot graphs
             "ys":   list of lists for Pyplot graphs  
     """
-    items = results_today(DATA)
+    data = get_user_telemetry()
+    items = results_today(data)
     n = len(items)
 
     if n>0:
@@ -226,7 +230,7 @@ def live_data():
     
     x0,y0 = count_times(items)
 
-    data = {
+    data_output = {
         "recent":recent,
         "today_count":n,
         "xs":[
@@ -236,4 +240,4 @@ def live_data():
             y0
         ]
     }
-    return data
+    return data_output
