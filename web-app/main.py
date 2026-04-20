@@ -43,6 +43,9 @@ app.config["THINGSBOARD_PASSWORD"] = os.getenv("THINGSBOARD_PASSWORD")
 
 app.config["BIN_COLLECTION_API"] = os.getenv("BIN_COLLECTION_API", "https://group-30-collection.apps.containers.cs.cf.ac.uk")
 
+app.logger.setLevel(logging.INFO if app.debug else logging.WARNING)
+print(f"Logging level set to: {app.logger.level}")
+
 # Set up static files in production
 static_directory = Path(__file__).resolve().parent / "static"
 app.logger.info(f"Configuring static file serving from: {static_directory}")
@@ -152,11 +155,13 @@ def login():
 
         user = Users.query.filter_by(username=username).first()
 
+        app.logger.info(f"Login attempt for username: {username}, found user: {bool(user)}")
         if user:
             if check_password_hash(user.password, password):
                 login_user(user)
                 
                 # Start telemetry subscription in background
+                app.logger.info(f"Starting telemetry subscription for user: {username}, device_id: {user.device_id}")
                 tb_token = tb_auth.get_token()
                 Thread(
                     target=subscribe,

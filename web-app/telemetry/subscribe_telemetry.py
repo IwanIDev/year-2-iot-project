@@ -1,10 +1,10 @@
-
 import json
 from datetime import datetime
+from urllib.parse import quote
 import websocket
-
 from database import db
 from telemetry.Telemetry import Telemetry
+from flask import current_app as app
 
 def parse_message(message):
     payload = json.loads(message)
@@ -25,18 +25,19 @@ def parse_message(message):
 
 def subscribe(app, token, device_id):
 
+    base_url = (app.config.get("THINGSBOARD_URL") or "https://thingsboard.cs.cf.ac.uk").rstrip("/")
+    if base_url.startswith("https://"):
+        ws_base = "wss://" + base_url[len("https://"):]
+    elif base_url.startswith("http://"):
+        ws_base = "ws://" + base_url[len("http://"):]
+    else:
+        ws_base = "wss://" + base_url
+    ws_url = f"{ws_base}/api/ws/plugins/telemetry?token={quote(token, safe='')}"
+
     def on_open(ws):
-    
+        app.logger.info(f"WebSocket opened for device {device_id}")
 
-        # 🔐 Authenticate
-        ws.send(json.dumps({
-            "authCmd": {
-                "cmdId": 0,
-                "token": token
-            }
-        }))
-
-        # 📡 Subscribe to device
+        # Subscribe to latest telemetry for this device after handshake auth.
         ws.send(json.dumps({
             "tsSubCmds": [{
                 "entityType": "DEVICE",
@@ -47,8 +48,18 @@ def subscribe(app, token, device_id):
             "historyCmds": [],
             "attrSubCmds": []
         }))
+        app.logger.info(f"Sent subscription command for device {device_id}")
+
+    def on_error(ws, error):
+        app.logger.error(f"WebSocket error for device {device_id}: {error}")
+
+    def on_close(ws, close_status_code, close_msg):
+        app.logger.warning(
+            f"WebSocket closed for device {device_id}. status={close_status_code}, message={close_msg}"
+        )
 
     def on_message(ws, message):
+        app.logger.info(f"Received telemetry message for device {device_id}: {message}")
         results = parse_message(message)
         
         if not results:
@@ -68,10 +79,14 @@ def subscribe(app, token, device_id):
                 )
                 db.session.add(row)
             db.session.commit()
-
+    
+    app.logger.info(f"Starting telemetry subscription for device {device_id}")
+    
     ws = websocket.WebSocketApp(
-        "wss://thingsboard.cs.cf.ac.uk/api/ws",
+        ws_url,
         on_open=on_open,
         on_message=on_message,
+        on_error=on_error,
+        on_close=on_close,
     )
     ws.run_forever()
