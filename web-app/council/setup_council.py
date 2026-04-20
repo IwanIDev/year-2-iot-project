@@ -27,13 +27,21 @@ COUNCILS = [
 ]
 
 def setup_council():
+    inserted = 0
     for council in COUNCILS:
         existing_council = Council.query.filter_by(name=council["name"]).first()
         if not existing_council:
             new_council = Council(
+                id=council["id"],
                 name=council["name"],
                 collectionName=council["collectionName"] if council["collectionName"] else "",
                 url=council["url"] if council["url"] else ""
             )
             db.session.add(new_council)
+            inserted += 1
+
+    if inserted:
+        db.session.commit()
+
+    return inserted
 

@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from flask import Blueprint, current_app, jsonify, request
 import httpx
 import logging
-from .collection_dates import BinCollection, BinType, get_collection_dates_for_device, parse_collection_dates, update_collection_dates_in_thingsboard
+from .collection_dates import BinCollection, BinType, fetch_new_collection_dates, get_collection_dates_for_device, parse_collection_dates, update_collection_dates_in_thingsboard
 from users import Users
 
 
@@ -89,7 +89,7 @@ def set_bin_collection_dates(device_id: str):
     
     def _post_attributes(force_refresh=False):
         return httpx.post(
-            f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/attributes/SHARED_SCOPE",
+            f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/SHARED_SCOPE",
             json=thingsboard_payload,
             headers=tb_auth.auth_headers(force_refresh=force_refresh),
             timeout=10,
@@ -127,7 +127,7 @@ def update_bin_dates():
         for type, date_str in dates.items():
             try:
                 collection_date = datetime.fromisoformat(date_str)
-                if collection_date < datetime.now():
+                if collection_date < datetime.now(timezone.utc):
                     devices_to_update.append(device_id)
                     break
             except ValueError:
@@ -137,18 +137,26 @@ def update_bin_dates():
     # If collection date has passed, fetch new collection dates and update Thingsboard attributes
     if not devices_to_update:
         return jsonify({'message': 'No devices with past collection dates found'}), 200
+    
+    # Fetch new collection dates from Bin Collection API and update Thingsboard attributes
 
-    # TODO: Fetch new collection dates from external API
-    # For now, I'll just add 7 days to the existing collection date.
     for device in devices_to_update:
-        for type, date_str in get_collection_dates_for_device(device, current_app.extensions.get("thingsboard_auth")).items():
-            try:
-                collection_date = datetime.fromisoformat(date_str)
-                if collection_date < datetime.now():
-                    new_date = (collection_date + timedelta(days=7)).isoformat()
-                    update_collection_dates_in_thingsboard(device, [BinCollection(bin_type=BinType(type), collection_date=datetime.fromisoformat(new_date))], current_app.extensions.get("thingsboard_auth"))
-            except ValueError:
-                logging.error(f"Invalid date format for device {device} bin type {type}: {date_str}")
-                continue
+        # Fetch new collection dates from Bin Collection API
+        user = Users.query.filter_by(device_id=device).first()
+
+        if not user:
+            logging.error(f"No user found for device {device}")
+            continue
+
+        dates = fetch_new_collection_dates(user)
+
+        if not dates:
+            logging.error(f"Failed to fetch new collection dates for device {device}")
+            continue
+
+        # Update Thingsboard attributes with new collection dates
+        if not update_collection_dates_in_thingsboard(device, dates, current_app.extensions.get("thingsboard_auth")):
+            logging.error(f"Failed to update Thingsboard collection dates for device {device}")
+            continue
 
     return jsonify({'message': 'Bin collection dates updated successfully'}), 200

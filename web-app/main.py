@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, render_template, request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -37,6 +38,8 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 app.config["THINGSBOARD_URL"] = os.getenv("THINGSBOARD_URL", "https://thingsboard.cs.cf.ac.uk")
 app.config["THINGSBOARD_USERNAME"] = os.getenv("THINGSBOARD_USERNAME")
 app.config["THINGSBOARD_PASSWORD"] = os.getenv("THINGSBOARD_PASSWORD")
+
+app.config["BIN_COLLECTION_API"] = os.getenv("BIN_COLLECTION_API", "https://group-30-collection.apps.containers.cs.cf.ac.uk")
 
 app.wsgi_app = WhiteNoise(app.wsgi_app, root="static/", prefix="static/")
 
@@ -89,7 +92,9 @@ with app.app_context():
     db.create_all()
 
 with app.app_context():
-    setup_council()
+    inserted_councils = setup_council()
+    if inserted_councils:
+        app.logger.info("Inserted %s councils during startup setup", inserted_councils)
 
 # load user for flask-login
 @login_manager.user_loader
@@ -181,7 +186,13 @@ def dashboard_data():
 @app.route("/live")
 @login_required
 def live():
-    return render_template("live.html",fact=get_fact())
+    bin_days = {
+        "Yesterday":["-"],
+        "Today":["-"],
+        "Tomorrow":["Red bag","Blue bag","General Waste"],
+        "Wednesday":["-"]
+    }
+    return render_template("live.html",fact=get_fact(),bin_days=bin_days)
 
 @app.route("/live/data")
 @login_required
@@ -235,7 +246,9 @@ def leaderboard():
 @app.route("/settings")
 @login_required
 def settings():
-    return render_template("settings.html", user=current_user, password=current_user.password, council = current_user.local_council)
+    # Get council name and ID for template
+    council = Council.query.filter_by(id=current_user.local_council_id).first()
+    return render_template("settings.html", user=current_user, password=current_user.password, council = council)
 
 @app.route("/change_password", methods=["GET","POST"])
 @login_required
@@ -262,20 +275,20 @@ def change_password():
 @app.route("/change_council", methods=["GET", "POST"])
 @login_required
 def change_council():
-    if request.method == "POST":
-        current_council = request.form.get("local_council")
-        new_council = request.form.get("new_council")
+    if not request.method == "POST":
+        # Get list of councils for dropdown
+        councils = Council.query.all()
+        return render_template("change_council.html", councils=councils)
 
-        """
-        Need section here for verifying council exists in dictionary.
-        """
+    new_council = request.form.get("new_council")
+    council = Council.query.filter_by(id=new_council).first()
+    if not council:
+        return render_template("change_council.html", error="Selected council does not exist.")
+    current_user.local_council_id = new_council
+    db.session.commit()
 
-        current_user.local_council = new_council
-        db.session.commit()
+    return redirect(url_for("settings"))
 
-        return redirect(url_for("settings"))
-
-    return render_template("change_council.html")
 
 @app.route("/logout")
 @login_required
