@@ -44,7 +44,7 @@ app.config["THINGSBOARD_PASSWORD"] = os.getenv("THINGSBOARD_PASSWORD")
 app.config["BIN_COLLECTION_API"] = os.getenv("BIN_COLLECTION_API", "https://group-30-collection.apps.containers.cs.cf.ac.uk")
 
 # Set up static files in production
-static_directory = Path(sys.argv[0]).resolve().parent / "static"
+static_directory = Path(__file__).resolve().parent / "static"
 app.logger.info(f"Configuring static file serving from: {static_directory}")
 app.wsgi_app = WhiteNoise(app.wsgi_app, root=static_directory.as_posix(), prefix=static_directory.as_posix())
 

@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from flask import current_app as app
 import httpx
-import logging
 from users.Users import Users
 import sys
 
@@ -66,11 +65,11 @@ def update_collection_dates_in_thingsboard(device_id: str, collection_dates: Lis
     try:
         r = _post_attributes()
         if not r.is_success:
-            logging.error(f"Failed to update Thingsboard device {device_id} with collection dates. Response: {r.text}")
+            app.logger.error(f"Failed to update Thingsboard device {device_id} with collection dates. Response: {r.text}")
             return False
         return True
     except Exception as exc:
-        logging.error(f"ThingsBoard request failed for device {device_id}: {exc}")
+        app.logger.error(f"ThingsBoard request failed for device {device_id}: {exc}")
         return False
 
 def get_collection_dates_for_device(device_id: str, tb_auth) -> Dict[str, str]:
@@ -88,10 +87,10 @@ def get_collection_dates_for_device(device_id: str, tb_auth) -> Dict[str, str]:
             data = r.json()
             return data[0].get("value", {})
         else:
-            logging.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {r.text}")
+            app.logger.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {r.text}")
             return {}
     except Exception as exc:
-        logging.error(f"ThingsBoard request failed for device {device_id}: {exc}")
+        app.logger.error(f"ThingsBoard request failed for device {device_id}: {exc}")
         return {}
 
 def fetch_new_collection_dates(user: Users) -> List[Optional[BinCollection]]:
@@ -105,10 +104,10 @@ def fetch_new_collection_dates(user: Users) -> List[Optional[BinCollection]]:
     url = app.config["BIN_COLLECTION_API"]
     
     if not api_url:
-        logging.warning(f"No API URL configured for council {council_name}")
+        app.logger.warning(f"No API URL configured for council {council_name}")
 
     if not council_name:
-        logging.warning(f"No collection name configured for council {council_name}")
+        app.logger.warning(f"No collection name configured for council {council_name}")
 
     bin_collection_api_url = f"{url}/api/bin_collection/{council_name}"
     api_params = {
@@ -116,7 +115,7 @@ def fetch_new_collection_dates(user: Users) -> List[Optional[BinCollection]]:
         "url": api_url if api_url else None
     }
 
-    cert_file = Path(sys.argv[0]).resolve().parent / "cert.pem"
+    cert_file = Path(__file__).resolve().parent.parent / "cert.pem"
     data = []
 
     with httpx.Client(verify=cert_file.as_posix()) as client:
@@ -127,7 +126,7 @@ def fetch_new_collection_dates(user: Users) -> List[Optional[BinCollection]]:
         )
 
         if not r.is_success:
-            logging.error(f"Failed to fetch collection dates for user {user.id} from Bin Collection API. Response: {r.text}")
+            app.logger.error(f"Failed to fetch collection dates for user {user.id} from Bin Collection API. Response: {r.text}")
             return []
 
         # Parse the response for collection dates
