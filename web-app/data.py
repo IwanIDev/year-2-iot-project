@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 from flask_login import current_user
 from telemetry.Telemetry import Telemetry
 
-TYPES = ["PLASTIC","PAPER","GLASS","GENERAL WASTE","FOOD"]
+TYPES = ["CARDBOARD-PAPER", "FOOD", "GENERAL WASTE", "GLASS", "HARD PLASTIC", "METAL", "SOFT PLASTIC"]
 
 def get_user_telemetry():
     """
