@@ -23,6 +23,10 @@ client.on_message = on_message
 
 client.subscribe("v1/devices/me/attributes")
 
+client.publish("v1/devices/me/attributes/request/1", '{"sharedKeys": "bins,collection_date"}')
+
+client.loop_start()
+
 start_screen_running = True
 detect_mode_running = False
 feedback_monitor_on = False
@@ -38,5 +42,4 @@ button_led = 3   # LED Button on D3
 button = 4
 light_sens = 0
 
-
-
+print(collection_info)
