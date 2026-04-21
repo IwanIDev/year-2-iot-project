@@ -5,7 +5,7 @@ wales_bins = {
         "metal": "Blue Box",
         "glass": "Orange Box",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "gwynedd": {
@@ -14,7 +14,7 @@ wales_bins = {
         "metal": "Middle Box",
         "glass": "Bottom Box",
         "food": "Food Caddy",
-        "general_waste": "Green Bin"
+        "general": "Green Bin"
     },
 
     "conwy": {
@@ -23,7 +23,7 @@ wales_bins = {
         "metal": "Middle Box/White Bag",
         "glass": "Bottom Box",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "denbighshire": {
@@ -32,7 +32,7 @@ wales_bins = {
         "metal": "Middle Box",
         "glass": "Bottom Box",
         "food": "Orange Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "flintshire": {
@@ -41,7 +41,7 @@ wales_bins = {
         "metal": "Grey Bag",
         "glass": "Blue Box",
         "food": "Green Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "wrexham": {
@@ -50,7 +50,7 @@ wales_bins = {
         "metal": "Green Box",
         "glass": "Black Box",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "powys": {
@@ -59,7 +59,7 @@ wales_bins = {
         "metal": "Blue Bag",
         "glass": "Green Box",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "ceredigion": {
@@ -68,7 +68,7 @@ wales_bins = {
         "metal": "Clear Bag",
         "glass": "Blue Box",
         "food": "Food Caddy",
-        "general_waste": "Black Bag"
+        "general": "Black Bag"
     },
 
     "pembrokeshire": {
@@ -77,7 +77,7 @@ wales_bins = {
         "metal": "Blue Bag",
         "glass": "Green Box",
         "food": "Food Caddy",
-        "general_waste": "Black Bag"
+        "general": "Black Bag"
     },
 
     "carmarthenshire": {
@@ -85,7 +85,7 @@ wales_bins = {
         "plastic": "Blue Bag",
         "metal": "Blue Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bag"
+        "general": "Black Bag"
     },
 
     "swansea": {
@@ -94,7 +94,7 @@ wales_bins = {
         "plastic": "Pink Bag",
         "metal": "Pink Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "neath port talbot": {
@@ -103,7 +103,7 @@ wales_bins = {
         "plastic": "Orange Bag",
         "metal": "Orange Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "bridgend": {
@@ -112,7 +112,7 @@ wales_bins = {
         "plastic": "Red Bag",
         "metal": "Red Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "vale of glamorgan": {
@@ -121,7 +121,7 @@ wales_bins = {
         "plastic": "Red Bag",
         "metal": "Red Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "cardiff": {
@@ -130,7 +130,7 @@ wales_bins = {
         "plastic": "Red Bag",
         "metal": "Red Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "rhondda cynon taf": {
@@ -139,7 +139,7 @@ wales_bins = {
         "plastic": "Orange Bag",
         "metal": "Orange Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "merthyr tydfil": {
@@ -147,7 +147,7 @@ wales_bins = {
         "plastic": "Blue Bag",
         "metal": "Blue Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "caerphilly": {
@@ -156,7 +156,7 @@ wales_bins = {
         "plastic": "Red Bag",
         "metal": "Red Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "blaenau gwent": {
@@ -164,7 +164,7 @@ wales_bins = {
         "plastic": "Blue Bag",
         "metal": "Blue Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "torfaen": {
@@ -173,7 +173,7 @@ wales_bins = {
         "plastic": "Red Bag",
         "metal": "Red Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "monmouthshire": {
@@ -182,7 +182,7 @@ wales_bins = {
         "metal": "Purple Bag",
         "paper": "Blue Box",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     },
 
     "newport": {
@@ -191,6 +191,6 @@ wales_bins = {
         "metal": "Red Bag",
         "paper": "Blue Bag",
         "food": "Food Caddy",
-        "general_waste": "Black Bin"
+        "general": "Black Bin"
     }
 }
