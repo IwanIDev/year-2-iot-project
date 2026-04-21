@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from enum import Enum
 import json
 from pathlib import Path
@@ -9,6 +9,8 @@ import httpx
 from users.Users import Users
 import sys
 from bin_lookup.council_bins import wales_bins
+
+COLLECTION_DATE_KEY = "next_collection_iso"
 
 def format_date(date_str):
     """
@@ -22,6 +24,21 @@ def format_date(date_str):
         return f"{day}{suffix} {month}"
     except ValueError:
         return date_str  # fallback
+
+def get_next_bins(collection_date: date, bins_data: List[Dict]) -> List[str]:
+    """
+    Get the next bins to be collected based on the collection date and bins data.
+    Returns a list of bin types.
+    """
+    next_bins = []
+    for bin_item in bins_data:
+        if bin_item.get("collectionDate") == collection_date.strftime("%d/%m/%Y"):
+            bin_type = bin_item.get("type", "").lower().replace(" ", "_")
+            if bin_type == "recycling":
+                next_bins.extend(["paper", "plastic", "metal"])
+            else:
+                next_bins.append(bin_type)
+    return next_bins
 
 def parse_collection_dates(data, council):
     """
@@ -43,18 +60,15 @@ def parse_collection_dates(data, council):
         dt = dt.replace(tzinfo=timezone.utc)
         iso_date = dt.isoformat().replace("+00:00", "Z")
     except ValueError:
+        dt = datetime.now(timezone.utc) # fallback to now if date parsing fails
         iso_date = collection_date_str
 
-    bin_names = set()  # to avoid duplicates
-    for bin_item in bins_data:
-        bin_type = bin_item.get("type", "").lower().replace(" ", "_")
-        if bin_type == "recycling":
-            for waste_type in ["paper", "plastic", "metal"]:
-                bin_name = wales_bins.get(council.lower(), {}).get(waste_type, waste_type)
-                bin_names.add(bin_name)
-        else:
-            bin_name = wales_bins.get(council.lower(), {}).get(bin_type, bin_type)
-            bin_names.add(bin_name)
+    bins = get_next_bins(dt, bins_data)
+    for bin_type in bins:
+        print(f"Bin type: {bin_type}, name: {wales_bins.get(bin_type, 'Unknown')}")
+    council_bins = wales_bins.get(council.lower(), {})
+    print(f"Council: {council}, bins: {bins}, council_bins: {council_bins}")
+    bin_names = set([council_bins.get(bin_type, bin_type) for bin_type in bins])
 
     bins_str = ", ".join(sorted(bin_names))
     return {"collection_date": formatted_date, "bins": bins_str, "next_collection_iso": iso_date}
@@ -84,7 +98,7 @@ def update_collection_dates_in_thingsboard(device_id: str, parsed_data: Dict[str
         app.logger.error(f"ThingsBoard request failed for device {device_id}: {exc}")
         return False
 
-def get_collection_dates_for_device(device_id: str, tb_auth) -> Dict[str, str]:
+def get_collection_dates_for_device(device_id: str, tb_auth) -> Optional[datetime]:
     """
     Retrieve the collection dates for a device from ThingsBoard shared attributes.
     Returns a dictionary with 'collection_date' and 'bins'.
@@ -95,15 +109,29 @@ def get_collection_dates_for_device(device_id: str, tb_auth) -> Dict[str, str]:
             headers=tb_auth.auth_headers(),
             timeout=10,
         )
-        if r.is_success:
-            data = r.json()
-            return data[0].get("value", {})
-        else:
-            app.logger.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {r.text}")
-            return {}
     except Exception as exc:
         app.logger.error(f"ThingsBoard request failed for device {device_id}: {exc}")
-        return {}
+        return None 
+
+    if not r.is_success:
+        app.logger.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {r.text}")
+        return None
+
+    data = r.json()
+    for item in data:
+        # Find the item with attribute 'key': 'next_collection_iso'
+        print(f"Key {item.get('key', '')}")
+        if item.get("key", "") != COLLECTION_DATE_KEY: 
+            print(f"Skipping key {item.get('key', '')}, looking for {COLLECTION_DATE_KEY}")
+            continue
+        # Parse date into datetime object
+        print(f"Found {COLLECTION_DATE_KEY} with value {item.get('value', '')}")
+        next_collection_date = datetime.fromisoformat(item.get("value", ""))
+        return next_collection_date
+
+    # If we get here, we didn't find the expected attribute
+    app.logger.warning(f"ThingsBoard device {device_id} does not have expected attribute '{COLLECTION_DATE_KEY}'")
+    return None
 
 def fetch_new_collection_dates(user: Users) -> Dict[str, str]:
     """
@@ -159,7 +187,7 @@ def fetch_new_collection_dates(user: Users) -> Dict[str, str]:
         data = json.loads(data_str) if isinstance(data_str, str) else data_str
 
     # Parse into human-readable format
-    parsed_data = parse_collection_dates(data, council_name)
+    parsed_data = parse_collection_dates(data, council.name)
     return parsed_data
 
 

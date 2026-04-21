@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 from flask import Blueprint, current_app, jsonify, request
 import httpx
 import logging
-from .collection_dates import BinCollection, BinType, fetch_new_collection_dates, get_collection_dates_for_device, parse_collection_dates, update_collection_dates_in_thingsboard
+from .collection_dates import fetch_new_collection_dates, get_collection_dates_for_device, parse_collection_dates, update_collection_dates_in_thingsboard
 from users import Users
 
 
@@ -123,16 +123,12 @@ def update_bin_dates():
 
     for device in devices:
         device_id = device.device_id
-        dates = get_collection_dates_for_device(device_id, current_app.extensions.get("thingsboard_auth"))
-        for type, date_str in dates.items():
-            try:
-                collection_date = datetime.fromisoformat(date_str)
-                if collection_date < datetime.now(timezone.utc):
-                    devices_to_update.append(device_id)
-                    break
-            except ValueError:
-                logging.error(f"Invalid date format for device {device_id} bin type {type}: {date_str}")
-                continue
+        date = get_collection_dates_for_device(device_id, current_app.extensions.get("thingsboard_auth"))
+        if date is None:
+            logging.warning(f"No collection date found for device {device_id}")
+            continue
+        if date < datetime.now(timezone.utc):
+            devices_to_update.append(device_id)
 
     # If collection date has passed, fetch new collection dates and update Thingsboard attributes
     if not devices_to_update:
