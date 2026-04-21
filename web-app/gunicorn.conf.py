@@ -8,6 +8,8 @@ def max_workers():
 ADDRESS = "0.0.0.0"
 PORT="8080"
 
+accesslog = "-"
+
 bind = ADDRESS + ':' + PORT
 max_requests = 1000
 workers = max_workers()
