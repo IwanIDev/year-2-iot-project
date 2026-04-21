@@ -58,10 +58,13 @@ def scroll_message_two_lines(message1, message2, delay=0.3):
         
         time.sleep(delay)
 
-def intitial_display(message1, message2, delay):
+def intitial_display():
     
     while True:
         if config.start_screen_running:
+
+            message1 = f"Bins Taken: {config.collection_info.get("bins")}"
+            message2 = f"Next Collection Date {config.collection_info.get("collection_date")}"
 
             #print("Start Running:" + str(config.start_screen_running))
             #print("Detect Mode Running:" + str(config.detect_mode_running))
