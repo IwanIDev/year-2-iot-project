@@ -101,6 +101,8 @@ def setup_telemetry_threads():
                 thread.start()
                 app.logger.info(f"Started telemetry thread for user: {user.username}, device_id: {user.device_id}")
 
+setup_telemetry_threads()
+
 def get_facts():
     from pathlib import Path
     PROJECT_DIR = Path(__file__).parent
