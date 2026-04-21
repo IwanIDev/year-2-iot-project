@@ -78,6 +78,29 @@ def shutdown_session(exception=None):
 # Add API blueprint
 app.register_blueprint(api_view)
 
+
+
+def create_thread_for_device(device_id: str) -> Thread:
+    """Helper function to create a background thread for subscribing to telemetry for a given device ID."""
+    # Start telemetry subscription in background
+    app.logger.info(f"Starting telemetry subscription for  device_id: {device_id}")
+    tb_token = tb_auth.get_token()
+    return Thread(
+        target=subscribe,
+        args=(app, tb_token, device_id),
+        daemon=True
+    )
+
+def setup_telemetry_threads():
+    """Set up telemetry subscription threads for all users in the database."""
+    with app.app_context():
+        users = Users.query.all()
+        for user in users:
+            if user.device_id:
+                thread = create_thread_for_device(user.device_id)
+                thread.start()
+                app.logger.info(f"Started telemetry thread for user: {user.username}, device_id: {user.device_id}")
+
 def get_facts():
     from pathlib import Path
     PROJECT_DIR = Path(__file__).parent
@@ -161,14 +184,6 @@ def login():
             if check_password_hash(user.password, password):
                 login_user(user)
                 
-                # Start telemetry subscription in background
-                app.logger.info(f"Starting telemetry subscription for user: {username}, device_id: {user.device_id}")
-                tb_token = tb_auth.get_token()
-                Thread(
-                    target=subscribe,
-                    args=(app, tb_token, user.device_id),
-                    daemon=True
-                ).start()
                 
                 return redirect(url_for("live"))
             return render_template("home.html", error="Incorrect password.")
