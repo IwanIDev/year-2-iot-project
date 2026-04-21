@@ -63,8 +63,8 @@ def intitial_display():
     while True:
         if config.start_screen_running:
 
-            message1 = f"Bins Taken: {config.collection_info.get("bins")}"
-            message2 = f"Next Collection Date {config.collection_info.get("collection_date")}"
+            message1 = f"Bins Taken: {config.collection_info.get('bins')}"
+            message2 = f"Next Collection Date: {config.collection_info.get('collection_date')}"
 
             #print("Start Running:" + str(config.start_screen_running))
             #print("Detect Mode Running:" + str(config.detect_mode_running))
@@ -79,7 +79,7 @@ def intitial_display():
                     grovepi.digitalWrite(config.button_led, 0)  # Ensure LED off
                     setRGB(0, 255, 0)  # Green
 
-                scroll_message_two_lines(message1, message2, delay)
+                scroll_message_two_lines(message1, message2)
                 
                 time.sleep(0.5)
 

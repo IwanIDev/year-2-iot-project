@@ -50,7 +50,7 @@ grovepi.digitalWrite(config.button_led, 0)
 grovepi.pinMode(config.button, "INPUT")
 
 
-start_thread = threading.Thread(target=intitial_display, args=(f"Next Collection Date {config.collection_date}", f"Bins Taken: {config.collection_type}", 0.3)) 
+start_thread = threading.Thread(target=intitial_display) 
 monitor_thread = threading.Thread(target=button_monitor)
 detect_thread = threading.Thread(target=detect_mode, args=(picam2,))
 feedback_thread = threading.Thread(target=feedback_monitor)
