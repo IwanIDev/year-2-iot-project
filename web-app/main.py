@@ -217,9 +217,10 @@ def live():
 
     with httpx.Client() as Client:
 
-        r = Client.get(f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/SHARED_SCOPE")
+        r = Client.get(f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/values/attributes/SHARED_SCOPE", headers=tb_auth.auth_headers(), timeout=10)
 
         if not r.is_success:
+            app.logger.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {r.text}")
             return "HTTPS request failed", 500
         
         payload = r.json()
