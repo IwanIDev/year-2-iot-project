@@ -1,17 +1,27 @@
 # Shared configuration and state variables
 import threading
 import paho.mqtt.client as mqtt
+import json
 
+
+collection_info = {}
+
+def on_message(client, userdata, msg):
+    
+    payload = json.loads(msg.payload.decode())
+
+    collection_info.update(payload)
 
 ACCESS_TOKEN = "aipiRandomToken69420"
-
 
 client = mqtt.Client()
 client.username_pw_set(ACCESS_TOKEN)
 
-
 client.connect("thingsboard.cs.cf.ac.uk", 1883, 60)
-client.loop_start()
+
+client.on_message = on_message
+
+client.subscribe("v1/devices/me/attributes")
 
 start_screen_running = True
 detect_mode_running = False
@@ -30,6 +40,3 @@ light_sens = 0
 
 
 
-# Fake collection info
-collection_type = "General Waste, Red Bag, Blue Bag"
-collection_date = "01/04/2026"
