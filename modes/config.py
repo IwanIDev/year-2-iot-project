@@ -12,6 +12,17 @@ def on_message(client, userdata, msg):
 
     collection_info.update(payload)
 
+def on_connect(client, userdata, flags, rc):
+
+    client.subscribe("v1/devices/me/attributes")
+
+    client.publish(
+        "v1/devices/me/attributes/request/1",
+        json.dumps({
+            "sharedKeys": "bins,collection_date"
+        })
+    )
+
 ACCESS_TOKEN = "aipiRandomToken69420"
 
 client = mqtt.Client()
@@ -19,11 +30,9 @@ client.username_pw_set(ACCESS_TOKEN)
 
 client.connect("thingsboard.cs.cf.ac.uk", 1883, 60)
 
+client.on_connect = on_connect 
 client.on_message = on_message
 
-client.subscribe("v1/devices/me/attributes")
-
-client.publish("v1/devices/me/attributes/request/1", '{"sharedKeys": "bins,collection_date"}')
 
 client.loop_start()
 
