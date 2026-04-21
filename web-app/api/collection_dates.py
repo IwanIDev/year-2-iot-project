@@ -8,52 +8,64 @@ from flask import current_app as app
 import httpx
 from users.Users import Users
 import sys
+from bin_lookup.council_bins import wales_bins
 
-class BinType(Enum):
-    GARDEN_WASTE = "garden_waste"
-    GENERAL_WASTE = "general"
-    PAPER = "paper"
-    PLASTIC = "plastic"
-    FOOD = "food"
-    RECYCLING = "recycling"
-    GLASS = "glass"
+def format_date(date_str):
+    """
+    Format a date string from dd/mm/yyyy to '13th April' format.
+    """
+    try:
+        dt = datetime.strptime(date_str, "%d/%m/%Y")
+        day = dt.day
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10 if day % 10 < 4 and day // 10 != 1 else 0, 'th')
+        month = dt.strftime("%B")
+        return f"{day}{suffix} {month}"
+    except ValueError:
+        return date_str  # fallback
+
+def parse_collection_dates(data, council):
+    """
+    Parse collection dates data and format into human-readable format.
+    Assumes all bins have the same collection date.
+    Returns a dict with 'collection_date' and 'bins'.
+    """
+    bins_data = data.get("bins", [])
+    if not bins_data:
+        return {}
+
+    # Assume all dates are the same, take the first
+    collection_date_str = bins_data[0].get("collectionDate", "")
+    formatted_date = format_date(collection_date_str)
     
+    # Also get ISO format for checking
+    try:
+        dt = datetime.strptime(collection_date_str, "%d/%m/%Y")
+        dt = dt.replace(tzinfo=timezone.utc)
+        iso_date = dt.isoformat().replace("+00:00", "Z")
+    except ValueError:
+        iso_date = collection_date_str
 
-@dataclass
-class BinCollection:
-    bin_type: BinType
-    collection_date: datetime
+    bin_names = set()  # to avoid duplicates
+    for bin_item in bins_data:
+        bin_type = bin_item.get("type", "").lower().replace(" ", "_")
+        if bin_type == "recycling":
+            for waste_type in ["paper", "plastic", "metal"]:
+                bin_name = wales_bins.get(council.lower(), {}).get(waste_type, waste_type)
+                bin_names.add(bin_name)
+        else:
+            bin_name = wales_bins.get(council.lower(), {}).get(bin_type, bin_type)
+            bin_names.add(bin_name)
 
-def parse_collection_dates(collection_dates: Dict[str, str]) -> List[BinCollection]:
-    """
-    Parse a dictionary of bin types and collection dates into BinCollection objects.
-    Expects dates in ISO 8601 format and Bin types to match BinType enum.
-    """
-    parsed_collections = []
-    for bin_type_str, date_str in collection_dates.items():
-        try:
-            bin_type = BinType(bin_type_str)
-        except ValueError:
-            raise ValueError(f"Invalid bin type: {bin_type_str}. Must be one of {[bt.value for bt in BinType]}")
-        
-        try:
-            collection_date = datetime.fromisoformat(date_str)
-        except ValueError:
-            raise ValueError(f"Invalid date format for {bin_type_str}: {date_str}. Must be in ISO 8601 format")
-        
-        parsed_collections.append(BinCollection(bin_type=bin_type, collection_date=collection_date))
-    return parsed_collections
+    bins_str = ", ".join(sorted(bin_names))
+    return {"collection_date": formatted_date, "bins": bins_str, "next_collection_iso": iso_date}
 
-def update_collection_dates_in_thingsboard(device_id: str, collection_dates: List[BinCollection], tb_auth) -> bool:
+def update_collection_dates_in_thingsboard(device_id: str, parsed_data: Dict[str, str], tb_auth) -> bool:
     """
     Update the collection dates for a device in ThingsBoard as shared attributes.
+    Expects parsed_data with 'collection_date' and 'bins' keys.
     Returns True if the update was successful, False otherwise.
     """
-    # Note: ThingsBoard expects dates in ISO 8601 format, and we want to ensure they are in UTC with 'Z' suffix.
-    # For some reason, Python doesn't output with Z suffix.
-    thingsboard_payload = {
-        "collection_dates": {bc.bin_type.value: bc.collection_date.isoformat().replace("+00:00", "Z") for bc in collection_dates}
-    }
+    thingsboard_payload = parsed_data
     
     def _post_attributes(force_refresh=False):
         return httpx.post(
@@ -75,7 +87,7 @@ def update_collection_dates_in_thingsboard(device_id: str, collection_dates: Lis
 def get_collection_dates_for_device(device_id: str, tb_auth) -> Dict[str, str]:
     """
     Retrieve the collection dates for a device from ThingsBoard shared attributes.
-    Returns a dictionary of bin types and their corresponding collection dates in ISO 8601 format.
+    Returns a dictionary with 'collection_date' and 'bins'.
     """
     try:
         r = httpx.get(
@@ -93,9 +105,10 @@ def get_collection_dates_for_device(device_id: str, tb_auth) -> Dict[str, str]:
         app.logger.error(f"ThingsBoard request failed for device {device_id}: {exc}")
         return {}
 
-def fetch_new_collection_dates(user: Users) -> List[Optional[BinCollection]]:
+def fetch_new_collection_dates(user: Users) -> Dict[str, str]:
     """
     Get new collection dates from the Bin Collection API for a user.
+    Returns parsed data in human-readable format.
     """
     council = user.council
     uprn = user.UPRN
@@ -145,25 +158,11 @@ def fetch_new_collection_dates(user: Users) -> List[Optional[BinCollection]]:
         # Note: the API seems to double-encode the JSON response (annoyingly)
         data = json.loads(data_str) if isinstance(data_str, str) else data_str
 
-    bins = data.get("bins", [])
-    collection_dates = []
-    for bin in bins:
-        bin_type_str = bin.get("type", "").lower().replace(" ", "_")
-        try:
-            bin_type = BinType(bin_type_str)
-        except ValueError:
-            app.logger.warning(f"Unknown bin type from API for user {user.id}: {bin_type_str}")
-            continue
-        
-        date_str = bin.get("collectionDate", "")
-        try:
-            collection_date = datetime.strptime(date_str, "%d/%m/%Y")
-            collection_date = collection_date.replace(tzinfo=timezone.utc)  # Assume API dates are in UTC
-        except ValueError:
-            app.logger.warning(f"Invalid date format from API for user {user.id} bin type {bin_type_str}: {date_str}")
-            continue
-        
-        collection_dates.append(BinCollection(bin_type=bin_type, collection_date=collection_date))
+    # Parse into human-readable format
+    parsed_data = parse_collection_dates(data, council_name)
+    return parsed_data
 
-    return collection_dates
+
+
+            
 
