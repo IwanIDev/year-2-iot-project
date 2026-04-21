@@ -22,6 +22,7 @@ from dotenv import load_dotenv
 from database import db
 from users import Users
 from council import Council
+import httpx
 
 load_dotenv()
 
@@ -196,13 +197,23 @@ def dashboard_data():
 @app.route("/live")
 @login_required
 def live():
-    bin_days = {
-        "Yesterday":["-"],
-        "Today":["-"],
-        "Tomorrow":["Red bag","Blue bag","General Waste"],
-        "Wednesday":["-"]
-    }
-    return render_template("live.html",fact=get_fact(),bin_days=bin_days)
+
+    device_id = current_user.device_id
+
+    with httpx.Client() as Client:
+
+        r = Client.get(f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/SHARED_SCOPE")
+
+        if not r.is_success:
+            return "HTTPS request failed", 500
+        
+        payload = r.json()
+
+        date = [attribute for attribute in payload if attribute.get("key", "") == "collection_date"][0]
+        bins = [attribute for attribute in payload if attribute.get("key", "") == "bins"][0]
+
+    
+    return render_template("live.html",fact=get_fact(),bins=bins, date=date)
 
 @app.route("/live/data")
 @login_required
