@@ -125,7 +125,7 @@ wales_bins = {
     },
 
     "cardiff": {
-        "glass": "Green Box",
+        "glass": "Blue Caddy",
         "paper": "Blue Bag",
         "plastic": "Red Bag",
         "metal": "Red Bag",

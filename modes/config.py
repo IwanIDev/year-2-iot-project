@@ -10,9 +10,7 @@ def on_message(client, userdata, msg):
     
     payload = json.loads(msg.payload.decode())
 
-    shared = payload.get("shared", {})
-
-    collection_info.update(shared)
+    collection_info.update(payload)
 
 ACCESS_TOKEN = "aipiRandomToken69420"
 
