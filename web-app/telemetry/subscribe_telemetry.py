@@ -4,6 +4,7 @@ from urllib.parse import quote
 import websocket
 from database import db
 from telemetry.Telemetry import Telemetry
+from users import Users
 from flask import current_app as app
 
 def parse_message(message):
@@ -66,19 +67,35 @@ def subscribe(app, token, device_id):
             return
 
         with app.app_context():
+            user = Users.query.filter_by(device_id=device_id).first()
+            points_earned = 0
+
             for item in results:
-                # Convert timestamp to datetime if needed
                 ts = item["timestamp"]
                 if isinstance(ts, (int, float)):
                     ts = datetime.fromtimestamp(ts / 1000) if ts > 1e10 else datetime.fromtimestamp(ts)
-                
+
+                existing_row = Telemetry.query.filter_by(
+                    deviceId=device_id,
+                    wasteType=item["waste_type"],
+                    timestamp=ts,
+                ).first()
+                if existing_row:
+                    continue
+
                 row = Telemetry(
                     deviceId=device_id,
                     wasteType=item["waste_type"],
                     timestamp=ts,
                 )
                 db.session.add(row)
-            db.session.commit()
+                points_earned += 1
+
+            if user and points_earned:
+                user.points += points_earned
+
+            if points_earned:
+                db.session.commit()
     
     app.logger.info(f"Starting telemetry subscription for device {device_id}")
     
