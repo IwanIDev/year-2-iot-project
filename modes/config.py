@@ -7,10 +7,17 @@ import json
 collection_info = {}
 
 def on_message(client, userdata, msg):
-    
+    print("TOPIC:", msg.topic)
+    print("RAW:", msg.payload.decode())
+
     payload = json.loads(msg.payload.decode())
 
-    collection_info.update(payload)
+    if "shared" in payload:
+        collection_info.update(payload["shared"])
+    else:
+        collection_info.update(payload)
+
+    print("UPDATED:", collection_info)
 
 def on_connect(client, userdata, flags, rc):
 

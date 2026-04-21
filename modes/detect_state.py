@@ -224,7 +224,7 @@ def detect_waste(picam2):
 
         data = {"waste_type": class_name}
 
-        #send_to_thingsboard(data)
+        send_to_thingsboard(data)
 
         del images
         del preds
@@ -272,7 +272,7 @@ def detect_waste(picam2):
 
         data = {"waste_type": class_name}
 
-        #send_to_thingsboard(data)
+        send_to_thingsboard(data)
 
         del images
         del preds
