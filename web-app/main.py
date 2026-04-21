@@ -94,12 +94,13 @@ def create_thread_for_device(device_id: str) -> Thread:
 def setup_telemetry_threads():
     """Set up telemetry subscription threads for all users in the database."""
     with app.app_context():
-        users = Users.query.all()
-        for user in users:
-            if user.device_id:
-                thread = create_thread_for_device(user.device_id)
-                thread.start()
-                app.logger.info(f"Started telemetry thread for user: {user.username}, device_id: {user.device_id}")
+        # Get all unique device IDs
+        device_ids = set(user.device_id for user in Users.query.all())
+        app.logger.info(f"Setting up telemetry threads for device IDs: {device_ids}")
+        for device_id in device_ids:
+            thread = create_thread_for_device(device_id)
+            thread.start()
+            app.logger.info(f"Started telemetry thread for device_id: {device_id}")
 
 setup_telemetry_threads()
 
