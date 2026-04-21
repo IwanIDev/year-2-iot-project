@@ -28,10 +28,10 @@ ACCESS_TOKEN = "aipiRandomToken69420"
 client = mqtt.Client()
 client.username_pw_set(ACCESS_TOKEN)
 
-client.connect("thingsboard.cs.cf.ac.uk", 1883, 60)
-
 client.on_connect = on_connect 
 client.on_message = on_message
+
+client.connect("thingsboard.cs.cf.ac.uk", 1883, 60)
 
 
 client.loop_start()
