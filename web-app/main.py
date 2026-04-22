@@ -47,7 +47,8 @@ app.config["THINGSBOARD_PASSWORD"] = os.getenv("THINGSBOARD_PASSWORD")
 app.config["BIN_COLLECTION_API"] = os.getenv("BIN_COLLECTION_API", "https://group-30-collection.apps.containers.cs.cf.ac.uk")
 
 app.logger.setLevel(logging.INFO if app.debug else logging.WARNING)
-print(f"Logging level set to: {app.logger.level}")
+level = logging.getLevelName(app.logger.level)
+print(f"Logging level set to: {level}")
 
 # Set up static files in production
 static_directory = Path(__file__).resolve().parent / "static"
@@ -61,11 +62,6 @@ tb_auth = ThingsBoardAuth(
     app.config["THINGSBOARD_PASSWORD"],
 )
 app.extensions["thingsboard_auth"] = tb_auth
-
-try:
-    tb_auth.warmup()
-except Exception as exc:
-    app.logger.warning("ThingsBoard auth warmup failed: %s", exc)
 
 # Initialise database and login manager
 db.init_app(app)
@@ -93,7 +89,7 @@ def create_thread_for_device(device_id: str) -> Thread:
         daemon=True
     )
 
-def setup_telemetry_threads():
+def setup_telemetry_threads() -> None:
     """Set up telemetry subscription threads for all users in the database."""
     with app.app_context():
         # Get all unique device IDs
@@ -103,17 +99,64 @@ def setup_telemetry_threads():
                 select(distinct(Users.device_id))
             ).scalars().all()
 
-        if device_ids is None:
+        if not device_ids:
             app.logger.info("No device IDs found in the database to set up telemetry threads.")
             return
 
         app.logger.info(f"Setting up telemetry threads for device IDs: {device_ids}")
         for device_id in device_ids:
-            thread = create_thread_for_device(device_id)
-            thread.start()
+            create_thread_for_device(device_id).start()
             app.logger.info(f"Started telemetry thread for device_id: {device_id}")
 
-setup_telemetry_threads()
+
+def warmup_thingsboard_auth() -> None:
+    try:
+        tb_auth.warmup()
+    except Exception as exc:
+        app.logger.warning("ThingsBoard auth warmup failed: %s", exc)
+
+
+def setup_database() -> None:
+    with app.app_context():
+        # db.drop_all() # USE TO ADD NEW COLUMN IF ALL DATA CAN BE LOST
+        db.create_all()
+
+    with app.app_context():
+        inserted_councils = setup_council()
+        if inserted_councils:
+            app.logger.info("Inserted %s councils during startup setup", inserted_councils)
+
+
+def startup_app() -> None:
+    if app.extensions.get("startup_complete"):
+        return
+
+    warmup_thingsboard_auth()
+    setup_database()
+    setup_telemetry_threads()
+
+    app.extensions["startup_complete"] = True
+
+
+def _is_truthy(value: str | None) -> bool:
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def should_run_startup_for_flask_cli() -> bool:
+    if os.getenv("FLASK_RUN_FROM_CLI") != "true":
+        return False
+
+    reloader_enabled = _is_truthy(os.getenv("FLASK_DEBUG")) or app.debug
+    if reloader_enabled and os.getenv("WERKZEUG_RUN_MAIN") != "true":
+        app.logger.info("Skipping startup in Werkzeug reloader parent process")
+        return False
+
+    return True
+
+
+# Ensure startup also runs for `flask run` in development.
+if should_run_startup_for_flask_cli():
+    startup_app()
 
 def get_facts():
     from pathlib import Path
@@ -130,17 +173,6 @@ def get_facts():
         return [""]
 
 FACTS = get_facts()
-
-
-# create database
-with app.app_context():
-    # db.drop_all() # USE TO ADD NEW COLUMN IF ALL DATA CAN BE LOST
-    db.create_all()
-
-with app.app_context():
-    inserted_councils = setup_council()
-    if inserted_councils:
-        app.logger.info("Inserted %s councils during startup setup", inserted_councils)
 
 # load user for flask-login
 @login_manager.user_loader
@@ -351,4 +383,5 @@ def get_fact():
     return random.choice(FACTS)
 
 if __name__ == "__main__":
-    app.run(port='7001')
+    startup_app()
+    app.run(port='7001', debug=True)
