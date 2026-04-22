@@ -1,11 +1,11 @@
 import logging
 from pathlib import Path
 import sys
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, jsonify, render_template, request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bootstrap import Bootstrap
-from sqlalchemy import distinct, select
+from sqlalchemy import distinct, select, text
 from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.pyplot as plt
@@ -157,6 +157,25 @@ def should_run_startup_for_flask_cli() -> bool:
 # Ensure startup also runs for `flask run` in development.
 if should_run_startup_for_flask_cli():
     startup_app()
+
+
+@app.route("/healthcheck/live")
+def health_live():
+    return jsonify(status="ok"), 200
+
+
+@app.route("/healthcheck/ready")
+def health_ready():
+    if not app.extensions.get("startup_complete"):
+        return jsonify(status="starting"), 503
+
+    try:
+        db.session.execute(text("SELECT 1"))
+    except Exception as exc:
+        app.logger.warning("Readiness check failed: %s", exc)
+        return jsonify(status="unavailable"), 503
+
+    return jsonify(status="ready"), 200
 
 def get_facts():
     from pathlib import Path
