@@ -5,6 +5,8 @@ from flask import Flask, render_template, request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bootstrap import Bootstrap
+from sqlalchemy import distinct, select
+from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.pyplot as plt
 from threading import Thread
@@ -95,7 +97,16 @@ def setup_telemetry_threads():
     """Set up telemetry subscription threads for all users in the database."""
     with app.app_context():
         # Get all unique device IDs
-        device_ids = set(user.device_id for user in Users.query.all())
+        device_ids = []
+        with db.session.begin():
+            device_ids = db.session.execute(
+                select(distinct(Users.device_id))
+            ).scalars().all()
+
+        if device_ids is None:
+            app.logger.info("No device IDs found in the database to set up telemetry threads.")
+            return
+
         app.logger.info(f"Setting up telemetry threads for device IDs: {device_ids}")
         for device_id in device_ids:
             thread = create_thread_for_device(device_id)
