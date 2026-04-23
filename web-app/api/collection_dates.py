@@ -101,7 +101,6 @@ def update_collection_dates_in_thingsboard(device_id: str, parsed_data: Dict[str
 def get_collection_dates_for_device(device_id: str, tb_auth) -> Optional[datetime]:
     """
     Retrieve the collection dates for a device from ThingsBoard shared attributes.
-    Returns a dictionary with 'collection_date' and 'bins'.
     """
     try:
         r = httpx.get(
