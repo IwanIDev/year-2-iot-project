@@ -46,6 +46,10 @@ app.config["THINGSBOARD_PASSWORD"] = os.getenv("THINGSBOARD_PASSWORD")
 
 app.config["BIN_COLLECTION_API"] = os.getenv("BIN_COLLECTION_API", "https://group-30-collection.apps.containers.cs.cf.ac.uk")
 
+app.config["MAIL_URL"] = os.getenv("MAIL_URL")
+app.config["MAIL_SENDER"] = os.getenv("MAIL_SENDER")
+app.config["MAIL_API_KEY"] = os.getenv("MAIL_API_KEY")
+
 app.logger.setLevel(logging.INFO if app.debug else logging.WARNING)
 level = logging.getLevelName(app.logger.level)
 print(f"Logging level set to: {level}")
@@ -203,10 +207,14 @@ def register():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
+        email = request.form.get("email")
 
         if Users.query.filter_by(username=username).first():
             return render_template("home.html", error="Username already taken.")
         
+        if Users.query.filter_by(email=email).first():
+            return render_template("home.html", error="Email already registered.")
+
         hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
 
         id = request.form.get("device_id")
@@ -218,7 +226,7 @@ def register():
 
         UPRN = request.form.get("UPRN")
 
-        new_user = Users(username=username, password=hashed_password, device_id=id, local_council_id=local_council_id, UPRN=UPRN)
+        new_user = Users(username=username, password=hashed_password, email=email, device_id=id, local_council_id=local_council_id, UPRN=UPRN)
         db.session.add(new_user)
         db.session.commit()
 

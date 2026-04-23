@@ -1,0 +1,12 @@
+Hello, {{ user.username }},
+
+This is a reminder that your bins are due to be collected on {{ collection_date }}.
+
+The bins to be collected are:
+{% for bin in bins %}
+  - {{ bin }}
+{% endfor %}
+
+Thanks for using our service!
+
+BinBuddy Team
