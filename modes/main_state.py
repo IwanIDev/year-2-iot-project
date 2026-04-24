@@ -14,7 +14,8 @@ from collections import Counter
 import config
 
 
-#Button Monitor
+# Button monitor function which when the start/ main mode is running, listens for a button
+# press and changes the mode flags to enter detect mode
 
 def button_monitor():
 
@@ -36,11 +37,11 @@ def button_monitor():
         else: 
             time.sleep(0.05)
 
-# Scroll helper function
+# Scroll helper function for the lcd
 def scroll_message_two_lines(message1, message2, delay=0.3):
     """Scroll text across LCD."""
     
-
+    # Pads each message with 16 characters of whitspace
     message1 = message1 + " " * 16
     message2 = message2 + " " * 16
     
@@ -48,11 +49,16 @@ def scroll_message_two_lines(message1, message2, delay=0.3):
     
     for i in range(max_len - 15):
 
+        # Checks the flag to stop printing the main message on the lcd if the
+        # button has been pressed
+
         if not config.start_screen_running:
             break
         
+        
         text = message1[i:i+16] + "\n" + message2[i:i+16]
 
+        # Prints character by character with a short delay of 0.3ms 
         with config.i2c_lock:
             setText(text)
         
@@ -61,19 +67,21 @@ def scroll_message_two_lines(message1, message2, delay=0.3):
 def intitial_display():
     
     while True:
+        
+        # If the start screen mode is on
         if config.start_screen_running:
+
+            # Print bin collection data and bin information data using the data retrived from thingsboard
 
             message1 = f"Bins Taken: {config.collection_info.get('bins')}"
             message2 = f"Next Collection Date: {config.collection_info.get('collection_date')}"
-
-            #print("Start Running:" + str(config.start_screen_running))
-            #print("Detect Mode Running:" + str(config.detect_mode_running))
             
+            # Reads the motion sensor
             with config.i2c_lock:
                 motion = grovepi.digitalRead(config.pir)
                 
             if motion:
-                # Motion detected mode (green)888
+                # If motion is detected turn the LCD on and print the message
 
                 with config.i2c_lock:
                     grovepi.digitalWrite(config.button_led, 0)  # Ensure LED off
@@ -85,6 +93,10 @@ def intitial_display():
 
             else:
                 with config.i2c_lock:
+
+                    # If no message is detected then ensure the led on the button is off
+                    # and turn of the lcd.
+                    
                     grovepi.digitalWrite(config.button_led, 0)
                     setText("")
                     setRGB(0,0,0)

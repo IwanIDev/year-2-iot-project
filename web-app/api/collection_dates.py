@@ -71,7 +71,7 @@ def parse_collection_dates(data, council):
     bin_names = set([council_bins.get(bin_type, bin_type) for bin_type in bins])
 
     bins_str = ", ".join(sorted(bin_names))
-    return {"collection_date": formatted_date, "bins": bins_str, "next_collection_iso": iso_date}
+    return {"collection_date": formatted_date, "bins": bins_str, "next_collection_iso": iso_date, "council": council}
 
 def update_collection_dates_in_thingsboard(device_id: str, parsed_data: Dict[str, str], tb_auth) -> bool:
     """
