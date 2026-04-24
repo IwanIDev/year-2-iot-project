@@ -1,4 +1,3 @@
-import sys
 import logging
 from main import app, startup_app
 

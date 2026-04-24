@@ -1,7 +1,5 @@
 from flask_login import UserMixin
 from database import db
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
 
 class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)

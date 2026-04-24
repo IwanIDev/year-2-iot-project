@@ -1,13 +1,10 @@
-from dataclasses import dataclass
 from datetime import date, datetime, timezone
-from enum import Enum
 import json
 from pathlib import Path
 from typing import Dict, List, Optional
 from flask import current_app as app
 import httpx
 from users.Users import Users
-import sys
 from bin_lookup.council_bins import wales_bins
 
 COLLECTION_DATE_KEY = "next_collection_iso"

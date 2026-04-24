@@ -1,12 +1,9 @@
 import logging
 from pathlib import Path
-import sys
 from flask import Flask, jsonify, render_template, request, url_for, redirect
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_bootstrap import Bootstrap
 from sqlalchemy import distinct, select, text
-from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.pyplot as plt
 from threading import Thread
@@ -192,7 +189,7 @@ def get_facts():
         for line in lines:
             facts.append(line)
         return facts
-    except Exception as e:
+    except Exception:
         return [""]
 
 FACTS = get_facts()

@@ -1,6 +1,5 @@
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, current_app, jsonify, request
-from flask_login import current_user
 import httpx
 import logging
 from api.email_reminders import send_email_reminder

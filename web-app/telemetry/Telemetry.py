@@ -1,6 +1,5 @@
 from database import db
-from sqlalchemy import ForeignKey, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy import DateTime
 
 class Telemetry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
