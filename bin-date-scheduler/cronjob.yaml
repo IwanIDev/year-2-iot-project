@@ -5,11 +5,13 @@ metadata:
 spec:
   schedule: "0 2 * * *"   # Daily at 02:00 UTC
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 14
+  failedJobsHistoryLimit: 14
   jobTemplate:
     spec:
       backoffLimit: 3
+      # Keep finished Jobs (and their Pods/logs) for 7 days.
+      ttlSecondsAfterFinished: 604800
       template:
         spec:
           restartPolicy: OnFailure
