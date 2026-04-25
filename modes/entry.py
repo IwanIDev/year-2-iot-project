@@ -51,6 +51,7 @@ grovepi.digitalWrite(config.button_led, 0)
 grovepi.pinMode(config.button, "INPUT")
 
 # Creates the threads 
+
 start_thread = threading.Thread(target=intitial_display) 
 monitor_thread = threading.Thread(target=button_monitor)
 detect_thread = threading.Thread(target=detect_mode, args=(picam2,))

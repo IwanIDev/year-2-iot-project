@@ -68,7 +68,6 @@ def feedback_monitor():
                     
                 count += 1
 
-            print(count)
 
             if count >= 2:
                 
@@ -243,7 +242,7 @@ def detect_waste(picam2):
     config.feedback_monitor_on = True
 
     #Gets the users council from thingsboard to provide bin suggestions
-    council = config.collection_info.get('council')
+    council = config.collection_info.get('council').lower()
 
     # Parses the class name into the correct dictionary key
     bin_parsed = bin_waste.get(class_name)
@@ -264,7 +263,7 @@ def detect_waste(picam2):
         
         # Suggest the correct bin
         with config.i2c_lock:
-            setText(f"Bin:\n{wales_bins.get(council).get(bin_parsed)}")
+            setText(f"Bin:\n{wales_bins.get(council,{}).get(bin_parsed)}")
 
         time.sleep(3)
 
