@@ -2,6 +2,7 @@
 import threading
 import paho.mqtt.client as mqtt
 import json
+import ssl
 
 # Initialises the dictionary to hold the shared attribute data from thingsboard
 collection_info = {}
@@ -43,8 +44,14 @@ client.username_pw_set(ACCESS_TOKEN)
 client.on_connect = on_connect 
 client.on_message = on_message
 
+client.tls_set(
+    ca_certs="cacert.pem",
+    tls_version=ssl.PROTOCOL_TLS_CLIENT
+)
+client.tls_insecure_set(False)
+
 # Connects to thingsboard
-client.connect("thingsboard.cs.cf.ac.uk", 1883, 60)
+client.connect("thingsboard.cs.cf.ac.uk", 8883, 60)
 
 
 client.loop_start()
