@@ -38,20 +38,20 @@ def on_connect(client, userdata, flags, rc):
 ACCESS_TOKEN = "aipiRandomToken69420"
 
 # Defines the mqtt client
-client = mqtt.Client()
+client = mqtt.Client(transport="websockets")
 client.username_pw_set(ACCESS_TOKEN)
 
 client.on_connect = on_connect 
 client.on_message = on_message
 
-client.tls_set(
-    ca_certs="modes\ca-certificates.crt",
-    tls_version=ssl.PROTOCOL_TLS_CLIENT
+#client.tls_set(
+    #ca_certs="modes\ca-certificates.crt",
+    #tls_version=ssl.PROTOCOL_TLS_CLIENT
 )
-client.tls_insecure_set(False)
+#client.tls_insecure_set(False)
 
 # Connects to thingsboard
-client.connect("thingsboard.cs.cf.ac.uk", 8883, 60)
+client.connect("thingsboard.cs.cf.ac.uk", 443)
 
 
 client.loop_start()
