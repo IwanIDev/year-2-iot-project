@@ -45,7 +45,7 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 client.tls_set(
-    ca_certs="cacert.pem",
+    ca_certs="modes\ca-certificates.crt",
     tls_version=ssl.PROTOCOL_TLS_CLIENT
 )
 client.tls_insecure_set(False)
