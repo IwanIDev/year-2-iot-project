@@ -2,6 +2,65 @@
 {% set name = "leaderboard" %}
 
 {% block content %}
+<head>
+    <style>
+        .badge-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+        .badge-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .octagon, .octagon-green, .octagon-gold {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #ffffff, #000000);
+            clip-path: polygon(
+                30% 0%, 70% 0%,
+                100% 30%, 100% 70%,
+                70% 100%, 30% 100%,
+                0% 70%, 0% 30%
+            );
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .octagon-green {
+            background: linear-gradient(135deg, #ffffff, #00c817);
+        }
+
+        .octagon-gold {
+            background: linear-gradient(135deg, #ffffff, #c8c800);
+        }
+
+        .band {
+            position: absolute;
+            width: 120%;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
 <section class="leaderboard-page">
     <h1 class="title">Leaderboard</h1>
 
@@ -32,6 +91,56 @@
     </div>
     <div class="Milestones">
         <h1>Milestone badges</h1>
+    </div>
+    <div class="badge-container">
+        <div class="badge-card" title="Scan your first item.">
+            <div class="octagon-green">
+                <div class="band">Debutant</div>
+            </div>
+        </div>
+
+        <div class="badge-card" title="Scan 10 items.">
+            <div class="octagon-gold">
+                <div class="band">Double Figures</div>
+            </div>
+        </div>
+
+        <div class="badge-card" title="Start your first streak.">
+            <div class="octagon">
+                <div class="band">Back To Back</div>
+            </div>
+        </div>
+
+        <div class="badge-card" title="Scan every day for a week.">
+            <div class="octagon">
+                <div class="band">Not For The Weak</div>
+            </div>
+        </div>
+    </div>
+    <div class="badge-container">
+        <div class="badge-card" title="Invite a friend to Bin Buddy.">
+            <div class="octagon">
+                <div class="band">Binfluencer</div>
+            </div>
+        </div>
+
+        <div class="badge-card" title="Scan one of every item.">
+            <div class="octagon">
+                <div class="band">Bin There Done That</div>
+            </div>
+        </div>
+
+        <div class="badge-card" title="Invite a friend to Bin Buddy.">
+            <div class="octagon">
+                <div class="band">Binfluencer</div>
+            </div>
+        </div>
+
+        <div class="badge-card" title="Scan one of every item.">
+            <div class="octagon">
+                <div class="band">Bin There Done That</div>
+            </div>
+        </div>
     </div>
 </section>
 {% endblock %}
