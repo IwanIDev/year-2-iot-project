@@ -1,10 +1,11 @@
+import json
 import logging
 from pathlib import Path
-import sys
-from flask import Flask, render_template, request, url_for, redirect
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+import fcntl
+from flask import Flask, jsonify, render_template, request, url_for, redirect
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_bootstrap import Bootstrap
+from sqlalchemy import distinct, select, text
 from werkzeug.security import generate_password_hash, check_password_hash
 import matplotlib.pyplot as plt
 from threading import Thread
@@ -22,6 +23,7 @@ from dotenv import load_dotenv
 from database import db
 from users import Users
 from council import Council
+import httpx
 
 load_dotenv()
 
@@ -43,8 +45,13 @@ app.config["THINGSBOARD_PASSWORD"] = os.getenv("THINGSBOARD_PASSWORD")
 
 app.config["BIN_COLLECTION_API"] = os.getenv("BIN_COLLECTION_API", "https://group-30-collection.apps.containers.cs.cf.ac.uk")
 
+app.config["MAIL_URL"] = os.getenv("MAIL_URL")
+app.config["MAIL_SENDER"] = os.getenv("MAIL_SENDER")
+app.config["MAIL_API_KEY"] = os.getenv("MAIL_API_KEY")
+
 app.logger.setLevel(logging.INFO if app.debug else logging.WARNING)
-print(f"Logging level set to: {app.logger.level}")
+level = logging.getLevelName(app.logger.level)
+print(f"Logging level set to: {level}")
 
 # Set up static files in production
 static_directory = Path(__file__).resolve().parent / "static"
@@ -59,11 +66,6 @@ tb_auth = ThingsBoardAuth(
 )
 app.extensions["thingsboard_auth"] = tb_auth
 
-try:
-    tb_auth.warmup()
-except Exception as exc:
-    app.logger.warning("ThingsBoard auth warmup failed: %s", exc)
-
 # Initialise database and login manager
 db.init_app(app)
 login_manager = LoginManager()
@@ -77,6 +79,141 @@ def shutdown_session(exception=None):
 # Add API blueprint
 app.register_blueprint(api_view)
 
+
+_telemetry_lock_file = None
+
+
+def acquire_telemetry_startup_lock() -> bool:
+    """Acquire a cross-process lock so telemetry threads start only once."""
+    global _telemetry_lock_file
+
+    if _telemetry_lock_file is not None:
+        return True
+
+    lock_path = os.getenv("TELEMETRY_STARTUP_LOCK_PATH", "/tmp/web-app-telemetry-startup.lock")
+
+    try:
+        lock_file = open(lock_path, "w")
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        lock_file.write(str(os.getpid()))
+        lock_file.flush()
+        _telemetry_lock_file = lock_file
+        app.logger.info("Acquired telemetry startup lock in PID %s", os.getpid())
+        return True
+    except BlockingIOError:
+        app.logger.info(
+            "Skipping telemetry startup in PID %s because another process already initialized it",
+            os.getpid(),
+        )
+        return False
+    except OSError as exc:
+        app.logger.warning("Unable to acquire telemetry startup lock: %s", exc)
+        return False
+
+
+
+def create_thread_for_device(device_id: str) -> Thread:
+    """Helper function to create a background thread for subscribing to telemetry for a given device ID."""
+    # Start telemetry subscription in background
+    app.logger.info(f"Starting telemetry subscription for  device_id: {device_id}")
+    tb_token = tb_auth.get_token()
+    return Thread(
+        target=subscribe,
+        args=(app, tb_token, device_id),
+        daemon=True
+    )
+
+def setup_telemetry_threads() -> None:
+    """Set up telemetry subscription threads for all users in the database."""
+    if not acquire_telemetry_startup_lock():
+        return
+
+    with app.app_context():
+        # Get all unique device IDs
+        device_ids = []
+        with db.session.begin():
+            device_ids = db.session.execute(
+                select(distinct(Users.device_id))
+            ).scalars().all()
+
+        if not device_ids:
+            app.logger.info("No device IDs found in the database to set up telemetry threads.")
+            return
+
+        app.logger.info(f"Setting up telemetry threads for device IDs: {device_ids}")
+        for device_id in device_ids:
+            create_thread_for_device(device_id).start()
+            app.logger.info(f"Started telemetry thread for device_id: {device_id}")
+
+
+def warmup_thingsboard_auth() -> None:
+    try:
+        tb_auth.warmup()
+    except Exception as exc:
+        app.logger.warning("ThingsBoard auth warmup failed: %s", exc)
+
+
+def setup_database() -> None:
+    with app.app_context():
+        # db.drop_all() # USE TO ADD NEW COLUMN IF ALL DATA CAN BE LOST
+        db.create_all()
+
+    with app.app_context():
+        inserted_councils = setup_council()
+        if inserted_councils:
+            app.logger.info("Inserted %s councils during startup setup", inserted_councils)
+
+
+def startup_app() -> None:
+    if app.extensions.get("startup_complete"):
+        return
+
+    warmup_thingsboard_auth()
+    setup_database()
+    setup_telemetry_threads()
+
+    app.extensions["startup_complete"] = True
+
+
+def _is_truthy(value: str | None) -> bool:
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def should_run_startup_for_flask_cli() -> bool:
+    if os.getenv("FLASK_RUN_FROM_CLI") != "true":
+        return False
+
+    reloader_enabled = _is_truthy(os.getenv("FLASK_DEBUG")) or app.debug
+    if reloader_enabled and os.getenv("WERKZEUG_RUN_MAIN") != "true":
+        app.logger.info("Skipping startup in Werkzeug reloader parent process")
+        return False
+
+    return True
+
+
+# Ensure startup also runs for `flask run` in development.
+if should_run_startup_for_flask_cli():
+    startup_app()
+
+
+@app.route("/healthcheck/live")
+def health_live():
+    return jsonify(status="ok"), 200
+
+
+@app.route("/healthcheck/ready")
+def health_ready():
+    if not app.extensions.get("startup_complete"):
+        return jsonify(status="starting"), 503
+
+    try:
+        db.session.execute(text("SELECT 1"))
+    except Exception as exc:
+        app.logger.warning("Readiness check failed: %s", exc)
+        return jsonify(status="unavailable"), 503
+
+    return jsonify(status="ready"), 200
+
 def get_facts():
     from pathlib import Path
     PROJECT_DIR = Path(__file__).parent
@@ -88,21 +225,10 @@ def get_facts():
         for line in lines:
             facts.append(line)
         return facts
-    except Exception as e:
+    except Exception:
         return [""]
 
 FACTS = get_facts()
-
-
-# create database
-with app.app_context():
-    # db.drop_all() # USE TO ADD NEW COLUMN IF ALL DATA CAN BE LOST
-    db.create_all()
-
-with app.app_context():
-    inserted_councils = setup_council()
-    if inserted_councils:
-        app.logger.info("Inserted %s councils during startup setup", inserted_councils)
 
 # load user for flask-login
 @login_manager.user_loader
@@ -114,10 +240,14 @@ def register():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
+        email = request.form.get("email")
 
         if Users.query.filter_by(username=username).first():
             return render_template("home.html", error="Username already taken.")
         
+        if Users.query.filter_by(email=email).first():
+            return render_template("home.html", error="Email already registered.")
+
         hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
 
         id = request.form.get("device_id")
@@ -129,7 +259,7 @@ def register():
 
         UPRN = request.form.get("UPRN")
 
-        new_user = Users(username=username, password=hashed_password, device_id=id, local_council_id=local_council_id, UPRN=UPRN)
+        new_user = Users(username=username, password=hashed_password, email=email, device_id=id, local_council_id=local_council_id, UPRN=UPRN)
         db.session.add(new_user)
         db.session.commit()
 
@@ -160,14 +290,6 @@ def login():
             if check_password_hash(user.password, password):
                 login_user(user)
                 
-                # Start telemetry subscription in background
-                app.logger.info(f"Starting telemetry subscription for user: {username}, device_id: {user.device_id}")
-                tb_token = tb_auth.get_token()
-                Thread(
-                    target=subscribe,
-                    args=(app, tb_token, user.device_id),
-                    daemon=True
-                ).start()
                 
                 return redirect(url_for("live"))
             return render_template("home.html", error="Incorrect password.")
@@ -196,13 +318,25 @@ def dashboard_data():
 @app.route("/live")
 @login_required
 def live():
-    bin_days = {
-        "Yesterday":["-"],
-        "Today":["-"],
-        "Tomorrow":["Red bag","Blue bag","General Waste"],
-        "Wednesday":["-"]
-    }
-    return render_template("live.html",fact=get_fact(),bin_days=bin_days)
+
+    device_id = current_user.device_id
+
+    with httpx.Client() as Client:
+
+        r = Client.get(f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/values/attributes/SHARED_SCOPE", headers=tb_auth.auth_headers(), timeout=10)
+
+        if not r.is_success:
+            app.logger.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {r.text}")
+            error = json.loads(r.text).get("message", "Unknown error") if r.text else "Unknown error"
+            return render_template("live.html", error=error, date=None, fact=None, bins=None), 500
+        
+        payload = r.json()
+
+        date = [attribute for attribute in payload if attribute.get("key", "") == "collection_date"][0]
+        bins = [attribute for attribute in payload if attribute.get("key", "") == "bins"][0]
+
+    
+    return render_template("live.html",fact=get_fact(),bins=bins, date=date)
 
 @app.route("/live/data")
 @login_required
@@ -310,4 +444,5 @@ def get_fact():
     return random.choice(FACTS)
 
 if __name__ == "__main__":
-    app.run(port='7001')
+    startup_app()
+    app.run(port='7001', debug=True)

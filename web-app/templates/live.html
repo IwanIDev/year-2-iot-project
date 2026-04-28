@@ -30,23 +30,19 @@
     </head>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <body>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+
         <div class="fact">
             <p>{{ fact }}</p>
         </div>
         <div class="split"></div>
-        <div class="calendar">
-            {% for day in bin_days.keys() %}
-                {% if day == "Today" %}
-                    <div class="today">
-                {% else %}
-                    <div class="day">
-                {% endif %}
-                        <div class="day-name">{{day}}</div>
-                        {% for bin in bin_days[day] %}
-                            <div class="bins">{{bin}}</div>
-                        {% endfor %}
-                    </div>
-            {% endfor %}
+        <div class="bin-dates">
+           <h3>Your next collection date:</h3>
+           <h1>{{date.value}}</h1>
+           <h3>Bins Taken</h3>
+           <h3>{{bins.value}}</h3>
         </div>
         <!-- Last updated timestamp (updated from js script) right aligned -->
         <div id="last_updated" style="text-align: right; padding: 10px;">

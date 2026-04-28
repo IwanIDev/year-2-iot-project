@@ -27,26 +27,52 @@ def get_user_telemetry():
 
 def sort(data):
     """
-        Sorts the data based on timestamp (earliest first)
+        Merge sorts the data based on timestamp (earliest first)
 
         Parameters
             data: list of dicts containing timestamp 'ts' and category 'value'
         
         Returns
-            output: list of dicts containing timestamp 'ts' and category 'value', ordered by ascending timestamp
+            list of dicts containing timestamp 'ts' and category 'value', ordered by ascending timestamp
+    """
+    if len(data) <= 1:
+        return data
+    
+    mid = len(data) // 2
+    left = data[:mid]
+    right = data[mid:]
+
+    sorted_left = sort(left)
+    sorted_right = sort(right)
+
+    return merge(sorted_left, sorted_right)
+
+def merge(left, right):
+    """
+        Helper function for 'sort(data)'.
+        Merges two sorted lists in the correct order.
+
+        Parameters:
+            left:   sorted list of dicts containing timestamp 'ts' and category 'value'
+            right:  sorted list of dicts containing timestamp 'ts' and category 'value'
+        
+        Returns
+            sorted list of dicts containing timestamp 'ts' and category 'value'
     """
     output = []
-    for item in data:
-        if len(output) == 0:
-            output.append(item)
+    i = j = 0
+
+    while i < len(left) and j < len(right):
+        if left[i]["ts"] < right[j]["ts"]:
+            output.append(left[i])
+            i += 1
         else:
-            for i in range(len(output)):
-                if item["ts"] > output[i]["ts"]:
-                    if i == len(output)-1:
-                        output.append(item)
-                    continue
-                output.insert(i,item)
-                break
+            output.append(right[j])
+            j += 1
+    
+    output.extend(left[i:])
+    output.extend(right[j:])
+
     return output
 
 def results_in_time(data,time="all"):

@@ -5,7 +5,6 @@ import websocket
 from database import db
 from telemetry.Telemetry import Telemetry
 from users import Users
-from flask import current_app as app
 
 def parse_message(message):
     payload = json.loads(message)

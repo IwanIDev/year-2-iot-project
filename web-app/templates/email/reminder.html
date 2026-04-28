@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!-- Bin collection reminder email -->
+  <body>
+    <h2>Hello, {{ user.username }},</h2>
+
+    <p>This is a reminder that your bins are due to be collected on {{ collection_date }}.</p>
+
+    <p>The bins to be collected are:</p>
+    <ul>
+      {% for bin in bins %}
+      <li>{{ bin }}
+      {% endfor %}
+    </ul>
+
+    <p>Thanks for using our service!</p>
+
+    <p>BinBuddy Team</p>
+  </body>
+</html>

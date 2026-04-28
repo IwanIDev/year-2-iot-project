@@ -1,7 +1,7 @@
 bin_waste = {
 
-    "GENERAL WASTE": "general_waste",
-    "SOFT PLASTIC": "general_waste",
+    "GENERAL WASTE": "general",
+    "SOFT PLASTIC": "general",
     "HARD PLASTIC": "plastic",
     "METAL": "metal",
     "FOOD": "food",

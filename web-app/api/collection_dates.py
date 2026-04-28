@@ -1,13 +1,10 @@
-from dataclasses import dataclass
 from datetime import date, datetime, timezone
-from enum import Enum
 import json
 from pathlib import Path
 from typing import Dict, List, Optional
 from flask import current_app as app
 import httpx
 from users.Users import Users
-import sys
 from bin_lookup.council_bins import wales_bins
 
 COLLECTION_DATE_KEY = "next_collection_iso"
@@ -71,7 +68,7 @@ def parse_collection_dates(data, council):
     bin_names = set([council_bins.get(bin_type, bin_type) for bin_type in bins])
 
     bins_str = ", ".join(sorted(bin_names))
-    return {"collection_date": formatted_date, "bins": bins_str, "next_collection_iso": iso_date}
+    return {"collection_date": formatted_date, "bins": bins_str, "next_collection_iso": iso_date, "council": council}
 
 def update_collection_dates_in_thingsboard(device_id: str, parsed_data: Dict[str, str], tb_auth) -> bool:
     """
@@ -101,7 +98,6 @@ def update_collection_dates_in_thingsboard(device_id: str, parsed_data: Dict[str
 def get_collection_dates_for_device(device_id: str, tb_auth) -> Optional[datetime]:
     """
     Retrieve the collection dates for a device from ThingsBoard shared attributes.
-    Returns a dictionary with 'collection_date' and 'bins'.
     """
     try:
         r = httpx.get(

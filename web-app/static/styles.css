@@ -74,6 +74,20 @@ td{
     transform: scale(1.025);
 }
 
+.navbar .navbar-toggle {
+    margin-left: 12px;
+    border-color: rgba(255, 255, 255, 0.9);
+}
+
+.navbar .navbar-toggle .icon-bar {
+    background-color: #ffffff;
+}
+
+.navbar .navbar-toggle:hover,
+.navbar .navbar-toggle:focus {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
 .navbar a {
     color: white;
     text-decoration: none; 
