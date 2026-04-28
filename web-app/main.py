@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import fcntl
 from flask import Flask, jsonify, render_template, request, url_for, redirect
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_bootstrap import Bootstrap
@@ -78,6 +79,37 @@ def shutdown_session(exception=None):
 app.register_blueprint(api_view)
 
 
+_telemetry_lock_file = None
+
+
+def acquire_telemetry_startup_lock() -> bool:
+    """Acquire a cross-process lock so telemetry threads start only once."""
+    global _telemetry_lock_file
+
+    if _telemetry_lock_file is not None:
+        return True
+
+    lock_path = os.getenv("TELEMETRY_STARTUP_LOCK_PATH", "/tmp/web-app-telemetry-startup.lock")
+
+    try:
+        lock_file = open(lock_path, "w")
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        lock_file.write(str(os.getpid()))
+        lock_file.flush()
+        _telemetry_lock_file = lock_file
+        app.logger.info("Acquired telemetry startup lock in PID %s", os.getpid())
+        return True
+    except BlockingIOError:
+        app.logger.info(
+            "Skipping telemetry startup in PID %s because another process already initialized it",
+            os.getpid(),
+        )
+        return False
+    except OSError as exc:
+        app.logger.warning("Unable to acquire telemetry startup lock: %s", exc)
+        return False
+
+
 
 def create_thread_for_device(device_id: str) -> Thread:
     """Helper function to create a background thread for subscribing to telemetry for a given device ID."""
@@ -92,6 +124,9 @@ def create_thread_for_device(device_id: str) -> Thread:
 
 def setup_telemetry_threads() -> None:
     """Set up telemetry subscription threads for all users in the database."""
+    if not acquire_telemetry_startup_lock():
+        return
+
     with app.app_context():
         # Get all unique device IDs
         device_ids = []
