@@ -77,7 +77,7 @@ def subscribe(app, token, device_id):
 
                 existing_row = Telemetry.query.filter_by(
                     deviceId=device_id,
-                    wasteType=item["waste_type"],
+                    wasteType=item["waste_type"], #Need to change so that points added based on wasteType
                     timestamp=ts,
                 ).first()
                 if existing_row:
