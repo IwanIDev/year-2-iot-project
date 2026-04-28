@@ -4,6 +4,7 @@ from pathlib import Path
 import fcntl
 from flask import Flask, jsonify, render_template, request, url_for, redirect
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_minify import Minify
 from flask_bootstrap import Bootstrap
 from sqlalchemy import distinct, select, text
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -30,6 +31,7 @@ load_dotenv()
 # Initialise flask app
 app = Flask(__name__, static_folder="static")
 bootstrap = Bootstrap(app)
+Minify(app=app, html=True, js=True, cssless=True)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "default_secret_key")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///db.sqlite")
