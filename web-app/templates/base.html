@@ -3,11 +3,17 @@
 {% block head %}
 {{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% if title %}
+<title>{{ title }} - BinBuddy</title>
+{% else %}
+<title>BinBuddy</title>
+{% endif %}
 {% endblock %}
 
 {% block navbar %}
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Bin Buddy</a>
+    <a class="navbar-brand" href="#">BinBuddy</a>
     {% if name != "home" %}
     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbarNav" aria-expanded="false" aria-controls="navbarNav">
         <span class="sr-only">Toggle navigation</span>
