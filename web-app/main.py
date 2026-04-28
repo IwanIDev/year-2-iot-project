@@ -1,3 +1,4 @@
+import json
 import logging
 from pathlib import Path
 import fcntl
@@ -326,7 +327,8 @@ def live():
 
         if not r.is_success:
             app.logger.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {r.text}")
-            return "HTTPS request failed", 500
+            error = json.loads(r.text).get("message", "Unknown error") if r.text else "Unknown error"
+            return render_template("live.html", error=error, date=None, fact=None, bins=None), 500
         
         payload = r.json()
 

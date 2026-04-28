@@ -30,6 +30,10 @@
     </head>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <body>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+
         <div class="fact">
             <p>{{ fact }}</p>
         </div>
