@@ -301,6 +301,7 @@ def login():
 
 @app.route("/")
 def home():
+    if current_user and current_user.is_authenticated: return redirect(url_for("live"))
     id = request.args.get("id")
     if id:
         return render_template("home.html", id=id)
