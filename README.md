@@ -87,7 +87,7 @@ gunicorn wsgi
 You can also build and run the app using Docker:
 ```bash
 docker build -t binbuddy-web-app .
-docker run -d -p 8000:8000 --env-file .env binbuddy
+docker run -d -p 8080:8080 --env-file .env binbuddy-web-app
 ```
 
 ## Third-party Software and Frameworks
@@ -109,6 +109,7 @@ The web app uses these third-party software and frameworks:
 - Mailgun - Used for sending email notifications to users
 
 ## Troubleshooting
+- Invalid device IDs set when registering on the web app can cause issues with retrieving telemetry data. As there is no way to edit device IDs after registration, users must make sure their device IDs are correct.
 
 ## Development Docs
 - [Thingsboard API Docs](./docs/Thingsboard-API-Integration.md)
