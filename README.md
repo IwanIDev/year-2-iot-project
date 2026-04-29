@@ -100,8 +100,8 @@ The web app uses these third-party software and frameworks:
 - Flask-Login - User authentication for the web app
 - SQLAlchemy - Object-relational mapper for the web app's database
 - Gunicorn - WSGI HTTP server for running the web app in production
-- Matplotlib - Used for generating bin collection statistic graphs
 - Websocket-client - Used for receiving real-time updates from the Thingsboard API
+- Plotly - Used for displaying graphs on the web app
 - Whitenoise - Used for serving static files in production
 - HTTPX - Used for making HTTP requests to the Thingsboard API and bin collection date API
 - PostgreSQL - Production database for the web app
