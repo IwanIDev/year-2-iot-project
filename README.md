@@ -1,5 +1,6 @@
 # BinBuddy
 ## Folder and File Structure
+```text
 ├── bin-date-scheduler - Cron job to refetch bin collection dates
 ├── classifier - BinBuddy AI classifier
 ├── modes - BinBuddy device modes
@@ -17,7 +18,7 @@
 │   ├── tests - Unit tests for the web app
 │   └── users - Handles user data
 └── wiki - Internal development documentation
-
+```
 ## Setup Instructions
 
 ## Running the Project
