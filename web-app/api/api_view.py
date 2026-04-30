@@ -9,6 +9,79 @@ from flask import current_app as app
 
 
 api_view = Blueprint('api_view', __name__, url_prefix='/api')
+REMINDER_SENT_KEY = "last_reminder_iso"
+
+
+def _parse_collection_day(value: str | None):
+    if not value:
+        return None
+
+    normalized_value = value.replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(normalized_value).date()
+    except ValueError:
+        return None
+
+
+def _get_shared_attributes(device_id: str, tb_auth):
+    with httpx.Client() as client:
+        response = client.get(
+            f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/values/attributes/SHARED_SCOPE",
+            headers=tb_auth.auth_headers(),
+            timeout=10,
+        )
+
+    if not response.is_success:
+        raise RuntimeError(response.text)
+
+    return response.json()
+
+
+def _get_shared_attribute_value(attributes, key: str):
+    for attribute in attributes:
+        if attribute.get("key", "") == key:
+            return attribute.get("value")
+    return None
+
+
+def should_notify_user(collection_date: datetime, last_reminder_iso: str | None = None, now: datetime | None = None) -> bool:
+    now = now or datetime.now(timezone.utc)
+    if collection_date >= now:
+        return False
+
+    if (now - collection_date) > timedelta(days=2):
+        return False
+
+    return _parse_collection_day(last_reminder_iso) != collection_date.date()
+
+
+def _record_reminder_sent(device_id: str, collection_date_iso: str, tb_auth) -> bool:
+    def _post_attributes(force_refresh=False):
+        return httpx.post(
+            f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/attributes/SHARED_SCOPE",
+            json={REMINDER_SENT_KEY: collection_date_iso},
+            headers=tb_auth.auth_headers(force_refresh=force_refresh),
+            timeout=10,
+        )
+
+    try:
+        r = _post_attributes()
+    except Exception as exc:
+        logging.error(f"ThingsBoard request failed for device {device_id}: {exc}")
+        return False
+
+    if r.status_code == 401:
+        try:
+            r = _post_attributes(force_refresh=True)
+        except Exception as exc:
+            logging.error(f"ThingsBoard retry failed for device {device_id}: {exc}")
+            return False
+
+    if not r.is_success:
+        logging.error(f"Failed to record reminder for device {device_id}. Response: {r.text}")
+        return False
+
+    return True
 
 @api_view.route('/localAuthority/<device_id>', methods=['POST'])
 def set_local_authority(device_id):
@@ -124,13 +197,6 @@ def update_bin_dates():
     if devices is None:
         return jsonify({'message': 'No devices found'}), 200
 
-    def should_notify_user(collection_date):
-        now = datetime.now(timezone.utc)
-        if collection_date > now:
-            return False
-        return (now - collection_date) <= timedelta(days=1)
-
-
     for device in devices:
         device_id = device.device_id
         date = get_collection_dates_for_device(device_id, current_app.extensions.get("thingsboard_auth"))
@@ -152,21 +218,24 @@ def update_bin_dates():
             logging.error(f"No user found for device {device_id}")
             continue
         
-        with httpx.Client() as Client:
-            tb_auth = app.extensions["thingsboard_auth"]
-            r = Client.get(f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/values/attributes/SHARED_SCOPE", headers=tb_auth.auth_headers(), timeout=10)
+        tb_auth = app.extensions["thingsboard_auth"]
 
-            if not r.is_success:
-                app.logger.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {r.text}")
-                return "HTTPS request failed", 500
-            
-            payload = r.json()
+        try:
+            payload = _get_shared_attributes(device_id, tb_auth)
+        except RuntimeError as exc:
+            app.logger.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {exc}")
+            return "HTTPS request failed", 500
 
-            date_dict = [attribute for attribute in payload if attribute.get("key", "") == "next_collection_iso"][0]
-            bins_str = [attribute for attribute in payload if attribute.get("key", "") == "bins"][0]
-            # Parse bins comma-seperated string into list
-            bins = bins_str.get("value", "").split(",") if bins_str.get("value", "") else []
-            date = datetime.fromisoformat(date_dict.get("value", "")) if date_dict.get("value", "") else None
+        date_iso = _get_shared_attribute_value(payload, "next_collection_iso")
+        bins_value = _get_shared_attribute_value(payload, "bins") or ""
+        last_reminder_iso = _get_shared_attribute_value(payload, REMINDER_SENT_KEY)
+
+        if not date_iso or _parse_collection_day(last_reminder_iso) == _parse_collection_day(date_iso):
+            app.logger.info(f"Skipping reminder for device {device_id}; reminder already sent for {date_iso}")
+            continue
+
+        bins = bins_value.split(",") if bins_value else []
+        date = datetime.fromisoformat(date_iso.replace("Z", "+00:00")) if date_iso else None
 
         
         if not bins or not date:
@@ -174,6 +243,7 @@ def update_bin_dates():
             continue
 
         send_email_reminder(user, bins, date)
+        _record_reminder_sent(device_id, date_iso, tb_auth)
         logging.info(f"Sent email reminder to {user.email} for device {device_id}")
         
 
@@ -219,27 +289,28 @@ def test_send_reminder(user_id):
     device_id = user.device_id
     tb_auth = current_app.extensions["thingsboard_auth"]
 
-    with httpx.Client() as Client:
+    try:
+        payload = _get_shared_attributes(device_id, tb_auth)
+    except RuntimeError as exc:
+        app.logger.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {exc}")
+        return "HTTPS request failed", 500
 
-        r = Client.get(f"{tb_auth.base_url}/api/plugins/telemetry/DEVICE/{device_id}/values/attributes/SHARED_SCOPE", headers=tb_auth.auth_headers(), timeout=10)
+    date_iso = _get_shared_attribute_value(payload, "next_collection_iso")
+    bins_value = _get_shared_attribute_value(payload, "bins") or ""
+    last_reminder_iso = _get_shared_attribute_value(payload, REMINDER_SENT_KEY)
 
-        if not r.is_success:
-            app.logger.error(f"Failed to retrieve Thingsboard device {device_id} collection dates. Response: {r.text}")
-            return "HTTPS request failed", 500
-        
-        payload = r.json()
+    if not date_iso:
+        return jsonify({'error': 'No collection dates found for user\'s device'}), 404
 
-        date_iso = [attribute for attribute in payload if attribute.get("key", "") == "next_collection_iso"][0]
-        bins = [attribute for attribute in payload if attribute.get("key", "") == "bins"][0]
-        # Parse bins comma-seperated string into list
-        bins_list = bins.get("value", "").split(",") if bins.get("value", "") else []
+    if _parse_collection_day(last_reminder_iso) == _parse_collection_day(date_iso):
+        return jsonify({'message': f'Email reminder already sent to {user.email} for this collection day'}), 200
 
-        date = datetime.fromisoformat(date_iso.get("value", "")) if date_iso.get("value", "") else None
-        # Create date string: DD MMM YYYY
-        date_str = date.strftime("%d %b %Y") if date else "Unknown"
+    bins_list = bins_value.split(",") if bins_value else []
+    date = datetime.fromisoformat(date_iso.replace("Z", "+00:00"))
+    date_str = date.strftime("%d %b %Y")
 
-        # Send email reminder to user
-        app.logger.info(f"Sending email reminder to {user.email} for bins {bins.get('value', [])} on date {date_iso.get('value', '')}")
-        send_email_reminder(user, bins_list, date_str)
+    app.logger.info(f"Sending email reminder to {user.email} for bins {bins_value} on date {date_iso}")
+    send_email_reminder(user, bins_list, date_str)
+    _record_reminder_sent(device_id, date_iso, tb_auth)
 
     return jsonify({'message': f'Email reminder sent to {user.email}'}), 200
