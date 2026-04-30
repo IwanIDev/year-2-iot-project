@@ -42,7 +42,7 @@ help:
 	@echo "$(YELLOW)Options:$(NC)"
 	@echo "  INSTALL_DIR=<path>        - Installation directory (default: $(INSTALL_DIR))"
 
-install: check-root install-deps setup-venv copy-files enable-service
+install: check-root setup-venv copy-files enable-service
 	@echo "$(GREEN)✓ Installation complete!$(NC)"
 	@echo "Service is configured and enabled. Start with: make start-service"
 
@@ -51,17 +51,6 @@ check-root:
 		echo "$(RED)✗ This target must be run as root$(NC)"; \
 		exit 1; \
 	fi
-
-install-deps: check-root
-	@echo "$(YELLOW)Installing system dependencies...$(NC)"
-	apt-get update
-	apt-get install -y \
-		python3 \
-		python3-pip \
-		python3-venv \
-		python3-dev \
-		git
-	@echo "$(GREEN)✓ System dependencies installed$(NC)"
 
 setup-venv: check-root
 	@echo "$(YELLOW)Setting up virtual environment at $(VENV_DIR)...$(NC)"
