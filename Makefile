@@ -51,6 +51,10 @@ copy-files: check-root
 	mkdir -p $(INSTALL_DIR)
 	rm -rf $(INSTALL_DIR)/modes
 	cp -r modes $(INSTALL_DIR)/
+	mkdir -p $(INSTALL_DIR)/web-app/bin_lookup
+	cp -r web-app/bin_lookup/* $(INSTALL_DIR)/web-app/bin_lookup/
+	mkdir -p $(INSTALL_DIR)/classifier
+	cp -r classifier/* $(INSTALL_DIR)/classifier/
 	@echo "$(YELLOW)Creating system user and group...$(NC)"
 	if ! id "$(MODES_USER)" &>/dev/null; then \
 		groupadd -f $(MODES_GROUP); \
