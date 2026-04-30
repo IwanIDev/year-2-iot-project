@@ -1,0 +1,20 @@
+[Unit]
+Description=IoT Group Project Modes System
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=modes
+Group=modes
+WorkingDirectory=/opt/modes
+Environment="PATH=/opt/modes/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/opt/modes/venv/bin/python /opt/modes/modes/entry.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=modes-system
+
+[Install]
+WantedBy=multi-user.target
