@@ -1,16 +1,12 @@
-.PHONY: install uninstall install-deps setup-venv copy-files enable-service disable-service start-service stop-service status-service clean
+.PHONY: install uninstall copy-files enable-service disable-service start-service stop-service status-service clean
 
 # Configuration
 INSTALL_DIR ?= /opt/modes
-VENV_DIR := $(INSTALL_DIR)/venv
 SERVICE_NAME := modes.service
 SERVICE_DIR := /etc/systemd/system
 SERVICE_FILE := modes/$(SERVICE_NAME)
 MODES_USER := modes
 MODES_GROUP := modes
-
-# Python interpreter
-PYTHON := python3
 
 # Color output
 GREEN := \033[0;32m
@@ -22,10 +18,8 @@ help:
 	@echo "$(GREEN)Modes System Installation and Management$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Installation targets:$(NC)"
-	@echo "  make install              - Complete installation (deps, venv, setup, service)"
-	@echo "  make install-deps         - Install system dependencies"
-	@echo "  make setup-venv           - Create and configure virtual environment"
-	@echo "  make copy-files           - Copy modes system to installation directory"
+	@echo "  make install              - Copy code and install the systemd service"
+	@echo "  make copy-files           - Copy the modes system to the installation directory"
 	@echo ""
 	@echo "$(YELLOW)Service management:$(NC)"
 	@echo "  make enable-service       - Enable systemd service (auto-start)"
@@ -36,13 +30,13 @@ help:
 	@echo "  make status-service       - Show service status"
 	@echo ""
 	@echo "$(YELLOW)Maintenance:$(NC)"
-	@echo "  make uninstall            - Remove all installation and service"
+	@echo "  make uninstall            - Remove the installation and service"
 	@echo "  make clean                - Clean temporary files"
 	@echo ""
 	@echo "$(YELLOW)Options:$(NC)"
 	@echo "  INSTALL_DIR=<path>        - Installation directory (default: $(INSTALL_DIR))"
 
-install: check-root setup-venv copy-files enable-service
+install: check-root copy-files enable-service
 	@echo "$(GREEN)✓ Installation complete!$(NC)"
 	@echo "Service is configured and enabled. Start with: make start-service"
 
@@ -52,24 +46,11 @@ check-root:
 		exit 1; \
 	fi
 
-setup-venv: check-root
-	@echo "$(YELLOW)Setting up virtual environment at $(VENV_DIR)...$(NC)"
-	mkdir -p $(INSTALL_DIR)
-	test -d $(VENV_DIR) || $(PYTHON) -m venv $(VENV_DIR)
-	. $(VENV_DIR)/bin/activate && pip install --upgrade pip setuptools wheel
-	@echo "$(YELLOW)Installing Python dependencies...$(NC)"
-	. $(VENV_DIR)/bin/activate && pip install \
-		paho-mqtt \
-		tensorflow \
-		picamera2 \
-		grovepi
-	@echo "$(GREEN)✓ Virtual environment configured$(NC)"
-
 copy-files: check-root
 	@echo "$(YELLOW)Copying modes system to $(INSTALL_DIR)...$(NC)"
 	mkdir -p $(INSTALL_DIR)
+	rm -rf $(INSTALL_DIR)/modes
 	cp -r modes $(INSTALL_DIR)/
-	cp -r instance $(INSTALL_DIR)/ 2>/dev/null || true
 	@echo "$(YELLOW)Creating system user and group...$(NC)"
 	if ! id "$(MODES_USER)" &>/dev/null; then \
 		groupadd -f $(MODES_GROUP); \

@@ -8,8 +8,7 @@ Type=simple
 User=modes
 Group=modes
 WorkingDirectory=/opt/modes
-Environment="PATH=/opt/modes/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/opt/modes/venv/bin/python /opt/modes/modes/entry.py
+ExecStart=/usr/bin/python3 /opt/modes/modes/entry.py
 Restart=always
 RestartSec=10
 StandardOutput=journal
