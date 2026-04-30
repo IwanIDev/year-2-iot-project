@@ -58,7 +58,7 @@ copy-files: check-root
 	@echo "$(YELLOW)Creating system user and group...$(NC)"
 	if ! id "$(MODES_USER)" &>/dev/null; then \
 		groupadd -f $(MODES_GROUP); \
-		useradd -r -g $(MODES_GROUP) -g gpio -d $(INSTALL_DIR) -s /usr/sbin/nologin $(MODES_USER); \
+		useradd -r -g $(MODES_GROUP) -g gpio,i2c -d $(INSTALL_DIR) -s /usr/sbin/nologin $(MODES_USER); \
 	fi
 	chown -R $(MODES_USER):$(MODES_GROUP) $(INSTALL_DIR)
 	chmod 750 $(INSTALL_DIR)
