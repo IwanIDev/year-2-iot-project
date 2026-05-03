@@ -18,6 +18,7 @@ import data
 import os
 from api import api_view
 from api import ThingsBoardAuth
+from api.collection_dates import fetch_new_collection_dates, update_collection_dates_in_thingsboard
 from telemetry.subscribe_telemetry import subscribe
 from whitenoise import WhiteNoise
 from dotenv import load_dotenv
@@ -274,6 +275,15 @@ def register():
             args=(app, tb_token, new_user.device_id),
             daemon=True
         ).start()
+        # Fetch initial bin collection dates for this user's device and update ThingsBoard
+        try:
+            parsed = fetch_new_collection_dates(new_user)
+            if parsed:
+                success = update_collection_dates_in_thingsboard(new_user.device_id, parsed, tb_auth)
+                if not success:
+                    app.logger.warning(f"Failed to update ThingsBoard with collection dates for device {new_user.device_id}")
+        except Exception as exc:
+            app.logger.warning(f"Error fetching/updating collection dates for device {new_user.device_id}: {exc}")
         
         return redirect(url_for("live"))
     
