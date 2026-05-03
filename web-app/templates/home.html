@@ -46,6 +46,17 @@
             box-sizing: border-box;
         }
 
+        .hint {
+            display: block;
+            font-size: 0.9rem;
+            margin-top: 4px;
+            margin-left: 0;
+        }
+
+        .hint a {
+            margin-left: 4px;
+        }
+
         button{
             display: flex;
             justify-content: center;
@@ -128,7 +139,7 @@
                 <p class="form_element">
                     <label for="UPRN">Unique Property Reference Number <b>(UPRN)</b></label>
                     <input type="text" name="UPRN" required />
-                    <p>Find your UPRN<a href="https://www.findmyaddress.co.uk" target="_blank" rel="noopener noreferrer">here</a></p>
+                    <span class="hint">Find your UPRN<a href="https://www.findmyaddress.co.uk" target="_blank" rel="noopener noreferrer">here</a></span>
                 </p>
             </div>
             <button type="submit">Sign Up</button>
