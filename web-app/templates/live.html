@@ -4,33 +4,9 @@
 
 {% block content %}
     <head>
-        <style>
-            .calendar {
-                display: flex;
-                gap: 20px;
-                padding: 20px;
-            }
-
-            .day, .today {
-                background: white;
-                border-radius: 12px;
-                padding: 20px;
-                width: 25%;
-                text-align: center;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            }
-
-            .today{
-                background: #107AB0;
-            }
-
-            .day-name{
-                font-weight: bold;
-            }
-        </style>
     </head>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <body>
+    <body class="live-page">
         {% if error %}
         <p class="error">{{ error }}</p>
         {% endif %}

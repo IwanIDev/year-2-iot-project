@@ -253,3 +253,134 @@ div {
 .leaderboard-table .rank-1 { background-color: #fffbeb; }
 .leaderboard-table .rank-2 { background-color: #f8f9fa; }
 .leaderboard-table .rank-3 { background-color: #fef5e7; }
+
+.badge-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+.badge-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .octagon, .octagon-green, .octagon-gold {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #ffffff, #000000);
+            clip-path: polygon(
+                30% 0%, 70% 0%,
+                100% 30%, 100% 70%,
+                70% 100%, 30% 100%,
+                0% 70%, 0% 30%
+            );
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .octagon-green {
+            background: linear-gradient(135deg, #ffffff, #00c817);
+        }
+
+        .octagon-gold {
+            background: linear-gradient(135deg, #ffffff, #c8c800);
+        }
+
+        .band {
+            position: absolute;
+            width: 120%;
+            height: 50px;
+            background: rgba(150, 150, 150, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+
+/* Home page styles */
+.home-page h1 {
+    max-width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.home-page .form_group {
+    display: table;
+    width: 100%;
+}
+
+.home-page .form_element {
+    display: table-row;
+}
+
+.home-page label,
+.home-page input,
+.home-page select {
+    width: 50%;
+    display: table-cell;
+    margin: 3px;
+}
+
+.home-page label {
+    text-align: right;
+}
+
+.home-page input,
+.home-page select {
+    margin-right: 100%;
+    border-radius: 10px;
+    padding: 6px 10px;
+    box-sizing: border-box;
+}
+
+.home-page button {
+    display: flex;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 6px;
+}
+
+/* Dashboard page styles */
+.dashboard-page img {
+    height: 100;
+    aspect-ratio: 1;
+    object-fit: contain;
+}
+
+/* Live page styles */
+.live-page .calendar {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+.live-page .day, .live-page .today {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 25%;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.live-page .today {
+    background: #107AB0;
+}
+
+.live-page .day-name {
+    font-weight: bold;
+}

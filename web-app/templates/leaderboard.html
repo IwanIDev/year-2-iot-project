@@ -3,68 +3,8 @@
 {% set title = "Leaderboard" %}
 
 {% block content %}
-<head>
-    <style>
-        .badge-container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            padding: 20px;
-        }
-
-        .badge-card {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .octagon, .octagon-green, .octagon-gold {
-            width: 160px;
-            height: 160px;
-            background: linear-gradient(135deg, #ffffff, #000000);
-            clip-path: polygon(
-                30% 0%, 70% 0%,
-                100% 30%, 100% 70%,
-                70% 100%, 30% 100%,
-                0% 70%, 0% 30%
-            );
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .octagon-green {
-            background: linear-gradient(135deg, #ffffff, #00c817);
-        }
-
-        .octagon-gold {
-            background: linear-gradient(135deg, #ffffff, #c8c800);
-        }
-
-        .band {
-            position: absolute;
-            width: 120%;
-            height: 50px;
-            background: rgba(150, 150, 150, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: bold;
-            font-size: 14px;
-            font-family: Arial, sans-serif;
-        }
-    </style>
-</head>
 <section class="leaderboard-page">
     <h1 class="title">Leaderboard</h1>
-
     <div class="leaderboard-card">
         <table class="leaderboard-table">
             <thead>
