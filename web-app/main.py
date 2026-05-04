@@ -12,6 +12,10 @@ import matplotlib.pyplot as plt
 from threading import Thread
 
 from council.setup_council import setup_council
+from notify.factory import NotificationFactory
+from notify.gateway import MailgunGateway
+from notify.invoker import NotificationInvoker
+from notify.reminder_service import ReminderService
 plt.switch_backend('agg')
 import random
 import data
@@ -167,12 +171,28 @@ def setup_database() -> None:
             app.logger.info("Inserted %s councils during startup setup", inserted_councils)
 
 
+def setup_reminder_service() -> None:
+    """Initialize the reminder service at app startup and store it in app.extensions."""
+    gateway = MailgunGateway(
+        mail_url=app.config["MAIL_URL"],
+        mail_sender=app.config["MAIL_SENDER"],
+        api_key=app.config["MAIL_API_KEY"],
+    )
+    reminder_service = ReminderService(
+        factory=NotificationFactory(gateway),
+        invoker=NotificationInvoker(),
+    )
+    app.extensions["reminder_service"] = reminder_service
+    app.logger.info("Reminder service initialized at startup")
+
+
 def startup_app() -> None:
     if app.extensions.get("startup_complete"):
         return
 
     warmup_thingsboard_auth()
     setup_database()
+    setup_reminder_service()
     setup_telemetry_threads()
 
     app.extensions["startup_complete"] = True
