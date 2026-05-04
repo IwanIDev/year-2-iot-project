@@ -197,6 +197,7 @@ def update_bin_dates():
     if devices is None:
         return jsonify({'message': 'No devices found'}), 200
 
+    # Check which devices have collection dates that have passed and which users should be notified about upcoming collections
     for device in devices:
         device_id = device.device_id
         date = get_collection_dates_for_device(device_id, current_app.extensions.get("thingsboard_auth"))
@@ -220,6 +221,7 @@ def update_bin_dates():
         
         tb_auth = app.extensions["thingsboard_auth"]
 
+        # Fetch collection dates and bins from Thingsboard
         try:
             payload = _get_shared_attributes(device_id, tb_auth)
         except RuntimeError as exc:
@@ -230,18 +232,19 @@ def update_bin_dates():
         bins_value = _get_shared_attribute_value(payload, "bins") or ""
         last_reminder_iso = _get_shared_attribute_value(payload, REMINDER_SENT_KEY)
 
+        # Only send reminder if we haven't already sent one for this collection day
         if not date_iso or _parse_collection_day(last_reminder_iso) == _parse_collection_day(date_iso):
             app.logger.info(f"Skipping reminder for device {device_id}; reminder already sent for {date_iso}")
             continue
 
         bins = bins_value.split(",") if bins_value else []
         date = datetime.fromisoformat(date_iso.replace("Z", "+00:00")) if date_iso else None
-
         
         if not bins or not date:
             logging.error(f"Failed to retrieve bins or collection date for device {device_id}")
             continue
 
+        # Send email reminder to user and record that we've sent a reminder for this collection day
         send_email_reminder(user, bins, date)
         _record_reminder_sent(device_id, date_iso, tb_auth)
         logging.info(f"Sent email reminder to {user.email} for device {device_id}")
@@ -252,7 +255,6 @@ def update_bin_dates():
         return jsonify({'message': 'No devices with past collection dates found'}), 200
     
     # Fetch new collection dates from Bin Collection API and update Thingsboard attributes
-
     for device_id in devices_to_update:
         # Fetch new collection dates from Bin Collection API
         user = Users.query.filter_by(device_id=device_id).first()
