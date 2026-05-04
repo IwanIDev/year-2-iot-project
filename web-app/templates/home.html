@@ -10,12 +10,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bin Buddy</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        h1{
+            max-width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .form_group{
+            display: table;
+            width: 100%;
+        }
+
+        .form_element{
+            display: table-row;
+        }
+
+        label,
+        input,
+        select{
+            width: 50%;
+            display: table-cell;
+            margin: 3px;
+        }
+
+        label{
+            text-align: right;
+        }
+
+        input,
+        select{
+            margin-right: 100%;
+            border-radius: 10px;
+            padding: 6px 10px;
+            box-sizing: border-box;
+        }
+
+        button{
+            display: flex;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 6px;
+        }
+    </style>
 </head>
 <body>
     {% if error %}
         <p class="error">{{ error }}</p>
     {% endif %}
-    <div class="home-page">
+    <div>
         <h1>Log in</h1>
         <form action="login" method="post">
             <div class="form_group">
@@ -31,7 +75,7 @@
             <button type="submit">Login</button>
         </form>
     </div>
-    <div class="home-page">
+    <div>
         <h1>Sign Up</h1>
         <form action="register" method="post">
             <div class="form_group">
