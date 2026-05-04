@@ -205,9 +205,11 @@ def update_bin_dates():
             logging.warning(f"No collection date found for device {device_id}")
             continue
 
+        # If current date is past the collection date, we need to fetch new collection dates and update Thingsboard attributes
         if date < datetime.now(timezone.utc):
             devices_to_update.append(device_id)
 
+        # If collection date is within the next 2 days and we haven't already sent a reminder for this collection day, we should notify the user
         if should_notify_user(date):
             devices_to_notify.append(device_id)
 

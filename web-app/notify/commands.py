@@ -1,4 +1,4 @@
-"""Notification command abstractions and concrete command types."""
+"""Notification command abstractions"""
 
 from abc import ABC, abstractmethod
 
