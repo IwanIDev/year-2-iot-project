@@ -164,7 +164,7 @@ def fetch_new_collection_dates(user: Users) -> Dict[str, str]:
 
         if not r.is_success:
             app.logger.error(f"Failed to fetch collection dates for user {user.id} from Bin Collection API. Response: {r.text}")
-            return []
+            return {}
 
         # Parse the response for collection dates
         """
@@ -185,8 +185,4 @@ def fetch_new_collection_dates(user: Users) -> Dict[str, str]:
     # Parse into human-readable format
     parsed_data = parse_collection_dates(data, council.name)
     return parsed_data
-
-
-
-            
 
