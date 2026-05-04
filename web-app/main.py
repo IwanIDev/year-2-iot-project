@@ -361,9 +361,9 @@ def live_data():
 def leaderboard():
     leaderboard_entries = [
         {
-            "username": current_user.username,
-            "points": current_user.points,
-            "avatar_text": "".join(part[0].upper() for part in current_user.username.split()[:2]) or "U1",
+            "username": current_user.username, #generates the user entry by username and points
+            "points": current_user.points, #points from user table
+            "avatar_text": "".join(part[0].upper() for part in current_user.username.split()[:2]) or "U1", #avatar text
             "is_current_user": True,
         },
         {
@@ -392,8 +392,10 @@ def leaderboard():
         },
     ]
 
-    leaderboard_entries.sort(key=lambda entry: entry["points"], reverse=True)
+    #Sorts the leaderboard by points descending order
+    leaderboard_entries.sort(key=lambda entry: entry["points"], reverse=True) 
 
+    #loops over sorted list, adds entry (position) and the rank class for top 3 bronze silver gold
     for index, entry in enumerate(leaderboard_entries, start=1):
         entry["rank"] = index
         entry["rank_class"] = f"rank-{index}" if index <= 3 else ""

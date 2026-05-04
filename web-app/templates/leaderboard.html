@@ -15,8 +15,10 @@
                 </tr>
             </thead>
             <tbody>
-                {% for entry in leaderboard_entries %}
-                <tr{% if entry.rank_class %} class="{{ entry.rank_class }}"{% endif %}>
+                <!-- Loops through leaderboard entries list-->
+                {% for entry in leaderboard_entries %} 
+                <tr{% if entry.rank_class %} class="{{ entry.rank_class }}"{% endif %}> <!-- CSS for top 3-->
+                    <!-- Row contains rank, user, and a username if it is the user-->
                     <td class="rank">{{ entry.rank }}</td>
                     <td class="user">
                         <img src="https://placehold.co/56?text={{ entry.avatar_text }}" alt="Avatar for {{ entry.username }}" class="avatar">

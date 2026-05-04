@@ -67,7 +67,7 @@ def subscribe(app, token, device_id):
 
         with app.app_context():
             user = Users.query.filter_by(device_id=device_id).first()
-            points_earned = 0
+            points_earned = 0 #initialises points earned 
 
             for item in results:
                 ts = item["timestamp"]
@@ -88,10 +88,10 @@ def subscribe(app, token, device_id):
                     timestamp=ts,
                 )
                 db.session.add(row)
-                points_earned += 1
+                points_earned += 1 #for each new item in telemetry, it adds a point 
 
-            if user and points_earned:
-                user.points += points_earned
+            if user and points_earned: #after processing all items, if there are points it adds them to the user db
+                user.points += points_earned 
 
             if points_earned:
                 db.session.commit()
