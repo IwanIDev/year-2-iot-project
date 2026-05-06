@@ -24,10 +24,20 @@
 #### Prerequisites
 The Pi must be running a 64-bit version of Raspberry Pi OS. The following modules must be connected to the Pi:
 - Camera Module
-- PIR Motion Sensor
-- Light Sensor
-- LCD Display
-- Button
+- Grove Shield, with:
+    - PIR Motion Sensor - Pin D2
+    - Light Sensor - Pin A0
+    - LCD Display - I2C Port
+    - Button - Pin D3
+
+The following libraries should be installed:
+- picamera2
+- grovepi
+- grove_pi_lcd
+- tensorflow version 2.20.0
+- cv2
+- numpy version 1.26.4
+- paho-mqtt
 
 ### Web App
 #### Prerequisites
@@ -74,9 +84,13 @@ MAIL_API_KEY - Mailgun API key for email notifications
 ```
 ## Running the Project
 ### BinBuddy Device
+To start the BinBuddy device code, open the `modes` directory and run this command:
+```bash
+python entry.py
+```
 
 ### Web App
-The web app can be run using the following command:
+The web app can be run using the following command from within the `web-app` directory:
 ```bash
 python main.py
 ```
